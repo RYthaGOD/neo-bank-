@@ -227,6 +227,111 @@
       ]
     },
     {
+      "name": "create_proposal",
+      "docs": [
+        "Create a treasury spending proposal (admin only)."
+      ],
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
+      "accounts": [
+        {
+          "name": "proposer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "admin_registry.proposal_count",
+                "account": "AdminRegistry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "destination",
+          "type": "pubkey"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "memo",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "discriminator": [
         242,
@@ -304,6 +409,109 @@
       ]
     },
     {
+      "name": "execute_proposal",
+      "docs": [
+        "Execute an approved proposal (permissionless)."
+      ],
+      "discriminator": [
+        186,
+        60,
+        116,
+        133,
+        108,
+        128,
+        111,
+        28
+      ],
+      "accounts": [
+        {
+          "name": "executor",
+          "docs": [
+            "Anyone can execute an approved proposal (permissionless)"
+          ],
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "proposal_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "proposal_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "initialize_bank",
       "discriminator": [
         217,
@@ -370,6 +578,81 @@
         {
           "name": "fee_bps",
           "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize_governance",
+      "docs": [
+        "Initialize the treasury governance system with admin agents."
+      ],
+      "discriminator": [
+        171,
+        87,
+        101,
+        237,
+        27,
+        107,
+        201,
+        57
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "initial_admins",
+          "type": {
+            "vec": "pubkey"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "u8"
         }
       ]
     },
@@ -638,6 +921,81 @@
       ]
     },
     {
+      "name": "vote_proposal",
+      "docs": [
+        "Vote on a treasury proposal (admin only)."
+      ],
+      "discriminator": [
+        247,
+        104,
+        114,
+        240,
+        237,
+        41,
+        200,
+        36
+      ],
+      "accounts": [
+        {
+          "name": "voter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "proposal_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "proposal_id",
+          "type": "u64"
+        },
+        {
+          "name": "approve",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "withdraw",
       "discriminator": [
         183,
@@ -761,6 +1119,19 @@
   ],
   "accounts": [
     {
+      "name": "AdminRegistry",
+      "discriminator": [
+        163,
+        108,
+        201,
+        205,
+        231,
+        169,
+        240,
+        157
+      ]
+    },
+    {
       "name": "Agent",
       "discriminator": [
         47,
@@ -784,6 +1155,19 @@
         66,
         19,
         8
+      ]
+    },
+    {
+      "name": "TreasuryProposal",
+      "discriminator": [
+        19,
+        43,
+        2,
+        16,
+        60,
+        113,
+        213,
+        176
       ]
     },
     {
@@ -840,9 +1224,85 @@
       "code": 6007,
       "name": "InvalidPercentage",
       "msg": "Invalid percentage (must be 0-100)."
+    },
+    {
+      "code": 6008,
+      "name": "TooManyAdmins",
+      "msg": "Too many admins (max 5)."
+    },
+    {
+      "code": 6009,
+      "name": "InvalidThreshold",
+      "msg": "Invalid threshold (must be > 0 and <= admin count)."
+    },
+    {
+      "code": 6010,
+      "name": "NotAdmin",
+      "msg": "Not an admin."
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientTreasuryFunds",
+      "msg": "Insufficient treasury funds."
+    },
+    {
+      "code": 6012,
+      "name": "ProposalNotPending",
+      "msg": "Proposal is not pending."
+    },
+    {
+      "code": 6013,
+      "name": "ProposalExpired",
+      "msg": "Proposal has expired."
+    },
+    {
+      "code": 6014,
+      "name": "ProposalNotApproved",
+      "msg": "Proposal is not approved."
+    },
+    {
+      "code": 6015,
+      "name": "InvalidDestination",
+      "msg": "Invalid destination."
     }
   ],
   "types": [
+    {
+      "name": "AdminRegistry",
+      "docs": [
+        "Admin registry for governance"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admins",
+            "type": {
+              "array": [
+                "pubkey",
+                5
+              ]
+            }
+          },
+          {
+            "name": "admin_count",
+            "type": "u8"
+          },
+          {
+            "name": "threshold",
+            "type": "u8"
+          },
+          {
+            "name": "proposal_count",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "Agent",
       "type": {
@@ -954,6 +1414,29 @@
       }
     },
     {
+      "name": "ProposalStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Approved"
+          },
+          {
+            "name": "Rejected"
+          },
+          {
+            "name": "Executed"
+          },
+          {
+            "name": "Expired"
+          }
+        ]
+      }
+    },
+    {
       "name": "TransactionIntent",
       "docs": [
         "The intent details an agent wants to validate"
@@ -983,6 +1466,71 @@
             "type": {
               "option": "i64"
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryProposal",
+      "docs": [
+        "A treasury spending proposal"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "memo",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ProposalStatus"
+              }
+            }
+          },
+          {
+            "name": "votes_for",
+            "type": "u8"
+          },
+          {
+            "name": "votes_against",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "executed_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

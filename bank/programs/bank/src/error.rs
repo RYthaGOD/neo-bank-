@@ -18,4 +18,21 @@ pub enum BankError {
     HookConditionNotMet,
     #[msg("Invalid percentage (must be 0-100).")]
     InvalidPercentage,
+    // Treasury Governance errors
+    #[msg("Too many admins (max 5).")]
+    TooManyAdmins,
+    #[msg("Invalid threshold (must be > 0 and <= admin count).")]
+    InvalidThreshold,
+    #[msg("Not an admin.")]
+    NotAdmin,
+    #[msg("Insufficient treasury funds.")]
+    InsufficientTreasuryFunds,
+    #[msg("Proposal is not pending.")]
+    ProposalNotPending,
+    #[msg("Proposal has expired.")]
+    ProposalExpired,
+    #[msg("Proposal is not approved.")]
+    ProposalNotApproved,
+    #[msg("Invalid destination.")]
+    InvalidDestination,
 }

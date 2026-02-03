@@ -74,4 +74,39 @@ pub mod bank {
     pub fn check_hook_status(ctx: Context<CheckHookStatus>) -> Result<()> {
         instructions::agentic_hooks::check_hook_status_handler(ctx)
     }
+
+    // ============ TREASURY GOVERNANCE ============
+
+    /// Initialize the treasury governance system with admin agents.
+    pub fn initialize_governance(
+        ctx: Context<InitializeGovernance>,
+        initial_admins: Vec<Pubkey>,
+        threshold: u8,
+    ) -> Result<()> {
+        instructions::treasury_governance::initialize_governance_handler(ctx, initial_admins, threshold)
+    }
+
+    /// Create a treasury spending proposal (admin only).
+    pub fn create_proposal(
+        ctx: Context<CreateProposal>,
+        destination: Pubkey,
+        amount: u64,
+        memo: String,
+    ) -> Result<()> {
+        instructions::treasury_governance::create_proposal_handler(ctx, destination, amount, memo)
+    }
+
+    /// Vote on a treasury proposal (admin only).
+    pub fn vote_proposal(
+        ctx: Context<VoteProposal>,
+        proposal_id: u64,
+        approve: bool,
+    ) -> Result<()> {
+        instructions::treasury_governance::vote_proposal_handler(ctx, proposal_id, approve)
+    }
+
+    /// Execute an approved proposal (permissionless).
+    pub fn execute_proposal(ctx: Context<ExecuteProposal>, proposal_id: u64) -> Result<()> {
+        instructions::treasury_governance::execute_proposal_handler(ctx, proposal_id)
+    }
 }

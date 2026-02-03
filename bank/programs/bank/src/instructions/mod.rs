@@ -5,6 +5,7 @@ pub mod withdraw;
 pub mod initialize_bank;
 pub mod validate_intent;
 pub mod agentic_hooks;
+pub mod treasury_governance;
 
 pub use accrue_yield::*;
 pub use deposit::*;
@@ -13,3 +14,4 @@ pub use withdraw::*;
 pub use initialize_bank::*;
 pub use validate_intent::*;
 pub use agentic_hooks::*;
+pub use treasury_governance::*;
