@@ -16,6 +16,11 @@
     *   Manual "Accrue Yield" button for testing.
     *   Integrated `AgentNeoBank` SDK.
 
+## 🚂 Railway Deployment
+*   **Source Code:** Verified on GitHub.
+*   **Env Support:** Integrated `process.env.NEXT_PUBLIC_PROGRAM_ID`.
+*   **Deployment Guide:** Created [README_DEPLOY.md](file:///home/craig/AGENT%20NEO/README_DEPLOY.md) with step-by-step instructions.
+
 ## 🤖 Real AI Agent Integration
 Developers can now integrate their agents using the `AgentNeoBank` SDK:
 
