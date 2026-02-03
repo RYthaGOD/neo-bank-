@@ -91,10 +91,57 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 | Time | Loop | Feature |
 |------|------|---------|
 | 22:45 | 1 | Transaction Intent System |
+| 23:10 | 2 | Agentic Hooks (auto-yield deployment) |
 
 ## 🎯 Pending Workstreams
-- [ ] Agentic Hooks (auto-yield deployment)
+- [x] Transaction Intent System ✅
+- [x] Agentic Hooks (auto-yield deployment) ✅
 - [ ] Treasury Governance (multi-sig admin)
 - [ ] Real Yield (Jupiter/Meteora CPI)
 - [ ] Agent Activity Feeds (UI)
 - [ ] SDK Prompt-Friendliness Audit
+
+---
+
+## 🪝 NEW: Agentic Hooks System (Loop 2)
+**Added:** 2026-02-03 23:10 GMT+8
+
+Agentic Hooks enable **truly autonomous treasury management**. Configure once, let the vault manage itself.
+
+### How It Works
+1. Agent configures a yield strategy (condition + protocol + percentage)
+2. When conditions are met, anyone can "crank" the trigger
+3. Vault auto-deploys to the specified DeFi protocol
+
+### Supported Conditions
+- `BalanceAbove` — Trigger when staked balance exceeds threshold
+- `TimeElapsed` — Trigger after time interval since last deployment
+- `YieldAbove` — Trigger when accrued yield exceeds threshold
+
+### Supported Protocols (Future CPI)
+- `Internal` — Simulated 5% APY (current)
+- `Jupiter` — Aggregated yield strategies
+- `Meteora` — LP positions
+- `Marinade` — Liquid staking (mSOL)
+
+### SDK Usage
+```typescript
+// Configure: deploy 50% to Marinade when balance > 10 SOL
+await bank.configureYieldStrategy(
+  { balanceAbove: { threshold: new BN(10 * LAMPORTS_PER_SOL) } },
+  { marinade: {} },
+  50,  // 50%
+  true // enabled
+);
+
+// Anyone can trigger when conditions are met
+await bank.triggerYieldHook(agentOwner);
+
+// Check if hook would trigger
+const status = await bank.checkHookStatus(agentOwner);
+```
+
+### Program Instructions
+- `configure_yield_strategy` — Owner sets up the hook
+- `trigger_yield_hook` — Permissionless crank
+- `check_hook_status` — Read-only status check

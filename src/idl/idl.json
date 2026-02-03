@@ -47,6 +47,186 @@
       "args": []
     },
     {
+      "name": "check_hook_status",
+      "docs": [
+        "Check if a yield hook would trigger (read-only status check)."
+      ],
+      "discriminator": [
+        57,
+        125,
+        46,
+        105,
+        51,
+        213,
+        2,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "agent",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent.owner",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "yield_strategy",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  121,
+                  105,
+                  101,
+                  108,
+                  100,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "configure_yield_strategy",
+      "docs": [
+        "Configure an agentic yield strategy hook.",
+        "Set conditions that auto-deploy vault funds to DeFi protocols."
+      ],
+      "discriminator": [
+        28,
+        15,
+        204,
+        203,
+        102,
+        33,
+        148,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "yield_strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  121,
+                  105,
+                  101,
+                  108,
+                  100,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "condition",
+          "type": {
+            "defined": {
+              "name": "HookCondition"
+            }
+          }
+        },
+        {
+          "name": "protocol",
+          "type": {
+            "defined": {
+              "name": "YieldProtocol"
+            }
+          }
+        },
+        {
+          "name": "deploy_percentage",
+          "type": "u8"
+        },
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "discriminator": [
         242,
@@ -276,6 +456,108 @@
       ]
     },
     {
+      "name": "trigger_yield_hook",
+      "docs": [
+        "Trigger a yield hook (permissionless crank).",
+        "Anyone can call this when conditions are met."
+      ],
+      "discriminator": [
+        175,
+        136,
+        209,
+        37,
+        203,
+        78,
+        187,
+        148
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Anyone can trigger (permissionless crank)"
+          ],
+          "signer": true
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent.owner",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "yield_strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  121,
+                  105,
+                  101,
+                  108,
+                  100,
+                  95,
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "validate_intent",
       "docs": [
         "Validate a transaction intent BEFORE executing.",
@@ -503,6 +785,19 @@
         19,
         8
       ]
+    },
+    {
+      "name": "YieldStrategy",
+      "discriminator": [
+        153,
+        203,
+        41,
+        77,
+        234,
+        105,
+        146,
+        235
+      ]
     }
   ],
   "errors": [
@@ -530,6 +825,21 @@
       "code": 6004,
       "name": "IntentInsufficientFunds",
       "msg": "Intent validation failed: insufficient vault balance."
+    },
+    {
+      "code": 6005,
+      "name": "HookDisabled",
+      "msg": "Hook is disabled."
+    },
+    {
+      "code": 6006,
+      "name": "HookConditionNotMet",
+      "msg": "Hook condition not met."
+    },
+    {
+      "code": 6007,
+      "name": "InvalidPercentage",
+      "msg": "Invalid percentage (must be 0-100)."
     }
   ],
   "types": [
@@ -606,6 +916,44 @@
       }
     },
     {
+      "name": "HookCondition",
+      "docs": [
+        "Conditions that can trigger an agentic hook"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "BalanceAbove",
+            "fields": [
+              {
+                "name": "threshold",
+                "type": "u64"
+              }
+            ]
+          },
+          {
+            "name": "TimeElapsed",
+            "fields": [
+              {
+                "name": "interval",
+                "type": "i64"
+              }
+            ]
+          },
+          {
+            "name": "YieldAbove",
+            "fields": [
+              {
+                "name": "threshold",
+                "type": "u64"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "TransactionIntent",
       "docs": [
         "The intent details an agent wants to validate"
@@ -635,6 +983,80 @@
             "type": {
               "option": "i64"
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "YieldProtocol",
+      "docs": [
+        "Target DeFi protocols for yield deployment"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Internal"
+          },
+          {
+            "name": "Jupiter"
+          },
+          {
+            "name": "Meteora"
+          },
+          {
+            "name": "Marinade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "YieldStrategy",
+      "docs": [
+        "Agentic Hook: Auto-deploy yield strategy configuration"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "condition",
+            "type": {
+              "defined": {
+                "name": "HookCondition"
+              }
+            }
+          },
+          {
+            "name": "protocol",
+            "type": {
+              "defined": {
+                "name": "YieldProtocol"
+              }
+            }
+          },
+          {
+            "name": "deploy_percentage",
+            "type": "u8"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "last_triggered",
+            "type": "i64"
+          },
+          {
+            "name": "trigger_count",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

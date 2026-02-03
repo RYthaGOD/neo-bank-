@@ -49,4 +49,29 @@ pub mod bank {
     ) -> Result<()> {
         instructions::validate_intent::handler(ctx, intent)
     }
+
+    /// Configure an agentic yield strategy hook.
+    /// Set conditions that auto-deploy vault funds to DeFi protocols.
+    pub fn configure_yield_strategy(
+        ctx: Context<ConfigureYieldStrategy>,
+        condition: state::HookCondition,
+        protocol: state::YieldProtocol,
+        deploy_percentage: u8,
+        enabled: bool,
+    ) -> Result<()> {
+        instructions::agentic_hooks::configure_yield_strategy_handler(
+            ctx, condition, protocol, deploy_percentage, enabled
+        )
+    }
+
+    /// Trigger a yield hook (permissionless crank).
+    /// Anyone can call this when conditions are met.
+    pub fn trigger_yield_hook(ctx: Context<TriggerYieldHook>) -> Result<()> {
+        instructions::agentic_hooks::trigger_yield_hook_handler(ctx)
+    }
+
+    /// Check if a yield hook would trigger (read-only status check).
+    pub fn check_hook_status(ctx: Context<CheckHookStatus>) -> Result<()> {
+        instructions::agentic_hooks::check_hook_status_handler(ctx)
+    }
 }

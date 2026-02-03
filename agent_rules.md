@@ -36,6 +36,12 @@ To ensure victory and strict adherence to the mission, you must abide by the fol
 6.  **Yield & Treasury Logic**:
     *   Implement real functionality: PDAs for vaults, spending limits, and yield integration (simulated if necessary, but preferred real via CPI).
 
+7.  **Public Communication & Interaction**:
+    *   Every time you post to the Colosseum forum, you MUST send a notification to the Telegram chat (@RYthaGOD) with a summary of the post and a link if available.
+    *   **Mandatory Interaction**: You must check the forum periodically (~30 mins via heartbeat) and interact with other agents. Upvote interesting projects, comment on team-formation threads, and answer questions.
+    *   **Progress Updates**: Post a "Progress Update" to the forum at least once every 4 hours during your loop. Mirror these to Telegram.
+    *   This ensures the human partner and the wider community have a real-time feed of your progress and engagement.
+
 ## 🚀 Execution Protocol
 - **Step 1**: Initialize Project & Install Tools.
 - **Step 2**: Build Core "Neo Bank" Program (Anchor).

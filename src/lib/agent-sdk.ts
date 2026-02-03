@@ -224,6 +224,129 @@ export class AgentNeoBank {
             periodDuration: periodDuration,
         };
     }
+
+    // ============ AGENTIC HOOKS ============
+
+    /**
+     * Get the PDA for a yield strategy account.
+     */
+    public getYieldStrategyPda(agentPda: PublicKey): PublicKey {
+        const [strategyPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("yield_strategy"), agentPda.toBuffer()],
+            this.program.programId
+        );
+        return strategyPda;
+    }
+
+    /**
+     * 🪝 AGENTIC HOOKS: Configure automated yield strategy
+     * 
+     * Set up a hook that auto-deploys vault funds to DeFi protocols
+     * when specified conditions are met.
+     * 
+     * @param condition - When to trigger (BalanceAbove, TimeElapsed, YieldAbove)
+     * @param protocol - Where to deploy (Internal, Jupiter, Meteora, Marinade)
+     * @param deployPercentage - Percentage of staked amount to deploy (0-100)
+     * @param enabled - Whether the hook is active
+     * 
+     * @example
+     * // Auto-deploy 50% to Marinade when balance exceeds 10 SOL
+     * await bank.configureYieldStrategy(
+     *   { balanceAbove: { threshold: new BN(10 * LAMPORTS_PER_SOL) } },
+     *   { marinade: {} },
+     *   50,
+     *   true
+     * );
+     */
+    public async configureYieldStrategy(
+        condition: HookCondition,
+        protocol: YieldProtocol,
+        deployPercentage: number,
+        enabled: boolean
+    ) {
+        const agentPda = this.getAgentPda(this.provider.wallet.publicKey);
+        const strategyPda = this.getYieldStrategyPda(agentPda);
+
+        return await this.program.methods
+            .configureYieldStrategy(condition, protocol, deployPercentage, enabled)
+            .accounts({
+                owner: this.provider.wallet.publicKey,
+                agent: agentPda,
+                yieldStrategy: strategyPda,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            })
+            .rpc();
+    }
+
+    /**
+     * 🔔 Trigger a yield hook (permissionless crank)
+     * 
+     * Anyone can call this when conditions are met.
+     * Useful for keepers/bots to auto-execute yield strategies.
+     * 
+     * @param agentOwner - The owner of the agent whose hook to trigger
+     */
+    public async triggerYieldHook(agentOwner: PublicKey) {
+        const agentPda = this.getAgentPda(agentOwner);
+        const vaultPda = this.getVaultPda(agentPda);
+        const strategyPda = this.getYieldStrategyPda(agentPda);
+
+        return await this.program.methods
+            .triggerYieldHook()
+            .accounts({
+                cranker: this.provider.wallet.publicKey,
+                agent: agentPda,
+                vault: vaultPda,
+                yieldStrategy: strategyPda,
+            })
+            .rpc();
+    }
+
+    /**
+     * 📊 Check if a yield hook would trigger (read-only)
+     * 
+     * Returns status without modifying state.
+     * 
+     * @param agentOwner - The owner of the agent to check
+     */
+    public async checkHookStatus(agentOwner: PublicKey): Promise<HookStatus> {
+        const agentPda = this.getAgentPda(agentOwner);
+        const strategyPda = this.getYieldStrategyPda(agentPda);
+
+        try {
+            // This will emit logs with the status
+            await this.program.methods
+                .checkHookStatus()
+                .accounts({
+                    agent: agentPda,
+                    yieldStrategy: strategyPda,
+                })
+                .simulate();
+
+            // Fetch strategy data for detailed status
+            const strategyData = await (this.program.account as any).yieldStrategy.fetch(strategyPda);
+            const agentData = await this.getAgentData(agentOwner);
+            
+            return {
+                enabled: strategyData.enabled,
+                protocol: strategyData.protocol,
+                deployPercentage: strategyData.deployPercentage,
+                lastTriggered: Number(strategyData.lastTriggered),
+                triggerCount: Number(strategyData.triggerCount),
+                stakedAmount: Number(agentData.stakedAmount),
+            };
+        } catch (error: any) {
+            // Strategy may not exist yet
+            return {
+                enabled: false,
+                protocol: null,
+                deployPercentage: 0,
+                lastTriggered: 0,
+                triggerCount: 0,
+                stakedAmount: 0,
+            };
+        }
+    }
 }
 
 /**
@@ -247,4 +370,35 @@ export interface SpendingStatus {
     remainingBudget: number;
     periodResetsAt: number;
     periodDuration: number;
+}
+
+// ============ AGENTIC HOOKS TYPES ============
+
+/**
+ * Conditions that can trigger an agentic hook
+ */
+export type HookCondition = 
+    | { balanceAbove: { threshold: anchor.BN } }
+    | { timeElapsed: { interval: anchor.BN } }
+    | { yieldAbove: { threshold: anchor.BN } };
+
+/**
+ * Target DeFi protocols for yield deployment
+ */
+export type YieldProtocol = 
+    | { internal: {} }
+    | { jupiter: {} }
+    | { meteora: {} }
+    | { marinade: {} };
+
+/**
+ * Status of a yield hook
+ */
+export interface HookStatus {
+    enabled: boolean;
+    protocol: YieldProtocol | null;
+    deployPercentage: number;
+    lastTriggered: number;
+    triggerCount: number;
+    stakedAmount: number;
 }

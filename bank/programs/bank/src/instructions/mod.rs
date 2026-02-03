@@ -4,6 +4,7 @@ pub mod register_agent;
 pub mod withdraw;
 pub mod initialize_bank;
 pub mod validate_intent;
+pub mod agentic_hooks;
 
 pub use accrue_yield::*;
 pub use deposit::*;
@@ -11,3 +12,4 @@ pub use register_agent::*;
 pub use withdraw::*;
 pub use initialize_bank::*;
 pub use validate_intent::*;
+pub use agentic_hooks::*;

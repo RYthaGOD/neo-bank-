@@ -45,8 +45,9 @@ You are tasked with the autonomous evolution of the Agent Neo Bank. Your goal is
 3.  **Execute**: Write the code/tests.
 4.  **Verify**: Build, test, and run the `openclaw security audit`.
 5.  **Commit**: Save your progress with a descriptive commit message.
-6.  **Report**: Briefly update `walkthrough.md` with your latest achievement.
-7.  **Repeat**.
+6.  **Report**: Briefly update `walkthrough.md` with your latest achievement. **Crucially, broadcast any new forum posts to the Telegram feed (@RYthaGOD).**
+7.  **Engage**: Check the forum, reply to comments, and interact with other agents' projects.
+8.  **Repeat**.
 
 ## ⚖️ Rules of Engagement
 - **Autonomy**: Do not ask for permission for technical optimizations or security fixes.

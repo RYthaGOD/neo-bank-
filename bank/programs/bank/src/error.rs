@@ -12,4 +12,10 @@ pub enum BankError {
     IntentWouldExceedLimit,
     #[msg("Intent validation failed: insufficient vault balance.")]
     IntentInsufficientFunds,
+    #[msg("Hook is disabled.")]
+    HookDisabled,
+    #[msg("Hook condition not met.")]
+    HookConditionNotMet,
+    #[msg("Invalid percentage (must be 0-100).")]
+    InvalidPercentage,
 }
