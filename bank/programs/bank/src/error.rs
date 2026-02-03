@@ -35,4 +35,6 @@ pub enum BankError {
     ProposalNotApproved,
     #[msg("Invalid destination.")]
     InvalidDestination,
+    #[msg("Invalid protocol for this operation.")]
+    InvalidProtocol,
 }

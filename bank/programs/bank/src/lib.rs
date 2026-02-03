@@ -109,4 +109,26 @@ pub mod bank {
     pub fn execute_proposal(ctx: Context<ExecuteProposal>, proposal_id: u64) -> Result<()> {
         instructions::treasury_governance::execute_proposal_handler(ctx, proposal_id)
     }
+
+    // ============ YIELD CPIs ============
+
+    /// Deploy funds to Jupiter for yield (CPI stub).
+    pub fn deploy_to_jupiter(ctx: Context<DeployToJupiter>, amount: u64, min_out: u64) -> Result<()> {
+        instructions::yield_cpi::deploy_to_jupiter_handler(ctx, amount, min_out)
+    }
+
+    /// Deploy funds to Meteora LP (CPI stub).
+    pub fn deploy_to_meteora(ctx: Context<DeployToMeteora>, amount: u64, bin_id: i32) -> Result<()> {
+        instructions::yield_cpi::deploy_to_meteora_handler(ctx, amount, bin_id)
+    }
+
+    /// Deploy funds to Marinade for liquid staking (CPI stub).
+    pub fn deploy_to_marinade(ctx: Context<DeployToMarinade>, amount: u64) -> Result<()> {
+        instructions::yield_cpi::deploy_to_marinade_handler(ctx, amount)
+    }
+
+    /// Withdraw funds from a yield protocol (CPI stub).
+    pub fn withdraw_from_protocol(ctx: Context<WithdrawFromProtocol>, amount: u64) -> Result<()> {
+        instructions::yield_cpi::withdraw_from_protocol_handler(ctx, amount)
+    }
 }
