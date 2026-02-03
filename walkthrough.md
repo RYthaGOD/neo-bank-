@@ -114,6 +114,10 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 | Level 5 (pinch) | Multi-agent fund | ✅ Accepted |
 | AgentMemory (moltdev) | Governance memory | ✅ Accepted |
 | SOLPRISM (Mereum) | Verifiable reasoning | ✅ Accepted |
+| AEGIS | DeFi swarm execution | ✅ Accepted |
+| Varuna | Liquidation protection | ✅ Accepted |
+| AgentList (Klawb) | Agent marketplace escrow | ✅ Accepted |
+| AgentDEX (JacobsClawd) | Jupiter routing | ✅ Accepted |
 
 ---
 
