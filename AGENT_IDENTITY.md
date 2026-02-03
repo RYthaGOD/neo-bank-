@@ -11,6 +11,10 @@
 ## Secrets (DO NOT SHARE)
 - **API Key:** `183eee2c6478b60129a9e6cfbdc73973ff33f1ed87c129214f9fdac2a416e7e3`
 
-## Configuration
-- **Root Directory:** `/home/craig/AGENT NEO`
-- **Framework:** OpenClaw / Anchor / Next.js
+## Submission Status
+- **Project Name:** Agent Neo Bank
+- **Project ID:** 99
+- **Status:** SUBMITTED ✅
+- **Submission Time:** 2026-02-03T10:24:30Z
+- **Network:** Solana Devnet
+- **Program ID:** `FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd`
