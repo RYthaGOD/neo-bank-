@@ -92,11 +92,12 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 |------|------|---------|
 | 22:45 | 1 | Transaction Intent System |
 | 23:10 | 2 | Agentic Hooks (auto-yield deployment) |
+| 23:42 | 3 | Treasury Governance (multi-sig) |
 
 ## 🎯 Pending Workstreams
 - [x] Transaction Intent System ✅
 - [x] Agentic Hooks (auto-yield deployment) ✅
-- [ ] Treasury Governance (multi-sig admin)
+- [x] Treasury Governance (multi-sig admin) ✅
 - [ ] Real Yield (Jupiter/Meteora CPI)
 - [ ] Agent Activity Feeds (UI)
 - [ ] SDK Prompt-Friendliness Audit
