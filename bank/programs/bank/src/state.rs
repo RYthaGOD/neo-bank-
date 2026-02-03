@@ -11,4 +11,7 @@ pub struct Agent {
     pub current_period_spend: u64,    // Amount spent in the current period
     #[max_len(32)]
     pub name: String,                 // Human-readable name for the agent
+    pub total_deposited: u64,         // Total lamports ever deposited
+    pub staked_amount: u64,           // Lamports currently in "yield" status
+    pub last_yield_timestamp: i64,    // Last time yield was accrued
 }

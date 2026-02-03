@@ -27,4 +27,12 @@ pub mod bank {
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
         instructions::withdraw::handler(ctx, amount)
     }
+
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+        instructions::deposit::handler(ctx, amount)
+    }
+
+    pub fn accrue_yield(ctx: Context<AccrueYield>) -> Result<()> {
+        instructions::accrue_yield::handler(ctx)
+    }
 }
