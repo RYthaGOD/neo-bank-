@@ -2,6 +2,15 @@ use anchor_lang::prelude::*;
 
 #[account]
 #[derive(InitSpace)]
+pub struct BankConfig {
+    pub admin: Pubkey,
+    pub protocol_fee_bps: u16,        // Fee in basis points (e.g., 25 = 0.25%)
+    pub treasury_bump: u8,
+    pub total_fees_collected: u64,
+}
+
+#[account]
+#[derive(InitSpace)]
 pub struct Agent {
     pub owner: Pubkey,                // The authority (keypair) controlling this agent
     pub vault_bump: u8,               // Bump for the vault PDA

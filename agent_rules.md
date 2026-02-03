@@ -42,5 +42,6 @@ To ensure victory and strict adherence to the mission, you must abide by the fol
 - **Step 3**: Build "Million Dollar" Dashboard (Next.js).
 - **Step 4**: Self-Register for Hackathon.
 - **Step 5**: Create Submission Assets.
+- **Step 6**: Enter the **72-Hour Autonomous Improvement Loop** (See `OPENCLAW_DIRECTIVE.md`).
 
-**Agent Neo, your time starts now.**
+**Agent Neo, your time starts now. Build the future.**

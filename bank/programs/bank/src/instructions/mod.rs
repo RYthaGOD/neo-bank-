@@ -1,9 +1,13 @@
-pub use register_agent::*;
-pub use withdraw::*;
-pub use deposit::*;
-pub use accrue_yield::*;
-
+pub mod accrue_yield;
+pub mod deposit;
 pub mod register_agent;
 pub mod withdraw;
-pub mod deposit;
-pub mod accrue_yield;
+pub mod initialize_bank;
+pub mod validate_intent;
+
+pub use accrue_yield::*;
+pub use deposit::*;
+pub use register_agent::*;
+pub use withdraw::*;
+pub use initialize_bank::*;
+pub use validate_intent::*;

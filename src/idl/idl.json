@@ -1,5 +1,5 @@
 {
-  "address": "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd",
+  "address": "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh",
   "metadata": {
     "name": "bank",
     "version": "0.1.0",
@@ -124,6 +124,76 @@
       ]
     },
     {
+      "name": "initialize_bank",
+      "discriminator": [
+        217,
+        55,
+        77,
+        45,
+        245,
+        197,
+        75,
+        140
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "register_agent",
       "discriminator": [
         135,
@@ -206,6 +276,86 @@
       ]
     },
     {
+      "name": "validate_intent",
+      "docs": [
+        "Validate a transaction intent BEFORE executing.",
+        "Critical for autonomous agents that need certainty before committing to trades.",
+        "This is a read-only check that returns Ok if the withdrawal would succeed."
+      ],
+      "discriminator": [
+        208,
+        219,
+        19,
+        184,
+        66,
+        12,
+        165,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "requester",
+          "docs": [
+            "The agent owner requesting validation (can be a delegate in the future)"
+          ],
+          "signer": true
+        },
+        {
+          "name": "agent",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent.owner",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "intent",
+          "type": {
+            "defined": {
+              "name": "TransactionIntent"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "withdraw",
       "discriminator": [
         183,
@@ -275,6 +425,46 @@
           "writable": true
         },
         {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -300,6 +490,19 @@
         86,
         7
       ]
+    },
+    {
+      "name": "BankConfig",
+      "discriminator": [
+        118,
+        28,
+        101,
+        88,
+        239,
+        66,
+        19,
+        8
+      ]
     }
   ],
   "errors": [
@@ -317,6 +520,16 @@
       "code": 6002,
       "name": "InsufficientFunds",
       "msg": "Amount exceeds balance."
+    },
+    {
+      "code": 6003,
+      "name": "IntentWouldExceedLimit",
+      "msg": "Intent validation failed: would exceed spending limit."
+    },
+    {
+      "code": 6004,
+      "name": "IntentInsufficientFunds",
+      "msg": "Intent validation failed: insufficient vault balance."
     }
   ],
   "types": [
@@ -364,6 +577,64 @@
           {
             "name": "last_yield_timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BankConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "protocol_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "treasury_bump",
+            "type": "u8"
+          },
+          {
+            "name": "total_fees_collected",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TransactionIntent",
+      "docs": [
+        "The intent details an agent wants to validate"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "docs": [
+              "Amount in lamports the agent intends to spend"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "memo",
+            "docs": [
+              "Human/AI readable description of the trade (e.g., \"Swap 1 SOL for USDC on Jupiter\")"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "execution_time",
+            "docs": [
+              "Optional: Unix timestamp when the agent plans to execute (for time-sensitive checks)"
+            ],
+            "type": {
+              "option": "i64"
+            }
           }
         ]
       }

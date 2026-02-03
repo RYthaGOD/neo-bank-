@@ -8,4 +8,8 @@ pub enum BankError {
     InvalidAuthority,
     #[msg("Amount exceeds balance.")]
     InsufficientFunds,
+    #[msg("Intent validation failed: would exceed spending limit.")]
+    IntentWouldExceedLimit,
+    #[msg("Intent validation failed: insufficient vault balance.")]
+    IntentInsufficientFunds,
 }

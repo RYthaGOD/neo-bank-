@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{transfer, Transfer};
-use crate::state::Agent;
-use crate::constants::{AGENT_SEED, VAULT_SEED};
+use crate::state::{Agent, BankConfig};
+use crate::constants::{AGENT_SEED, VAULT_SEED, CONFIG_SEED, TREASURY_SEED};
 use crate::error::BankError;
 
 #[derive(Accounts)]
@@ -28,6 +28,21 @@ pub struct Withdraw<'info> {
     /// CHECK: Arbitrary destination
     #[account(mut)]
     pub destination: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        seeds = [CONFIG_SEED.as_bytes()],
+        bump
+    )]
+    pub config: Account<'info, BankConfig>,
+
+    /// CHECK: Treasury PDA to hold protocol fees
+    #[account(
+        mut,
+        seeds = [TREASURY_SEED.as_bytes()],
+        bump = config.treasury_bump,
+    )]
+    pub treasury: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -57,24 +72,43 @@ pub fn handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     // update state
     agent.current_period_spend = new_spend;
 
-    // transfer
+    let fee = (amount as u128)
+        .checked_mul(ctx.accounts.config.protocol_fee_bps as u128).unwrap()
+        .checked_div(10000).unwrap() as u64;
+    let net_amount = amount.checked_sub(fee).unwrap();
+
+    // sign for vault
     let seeds = &[
         VAULT_SEED.as_bytes(),
         agent.to_account_info().key.as_ref(),
         &[agent.vault_bump],
     ];
     let signer = &[&seeds[..]];
+    let cpi_program = ctx.accounts.system_program.to_account_info();
 
+    // Transfer fee to treasury
+    if fee > 0 {
+        let fee_accounts = Transfer {
+            from: ctx.accounts.vault.to_account_info(),
+            to: ctx.accounts.treasury.to_account_info(),
+        };
+        let fee_ctx = CpiContext::new_with_signer(cpi_program.clone(), fee_accounts, signer);
+        transfer(fee_ctx, fee)?;
+        
+        let config = &mut ctx.accounts.config;
+        config.total_fees_collected = config.total_fees_collected.checked_add(fee).unwrap();
+    }
+
+    // Transfer net amount to destination
     let cpi_accounts = Transfer {
         from: ctx.accounts.vault.to_account_info(),
         to: ctx.accounts.destination.to_account_info(),
     };
-    let cpi_program = ctx.accounts.system_program.to_account_info();
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
 
-    transfer(cpi_ctx, amount)?;
+    transfer(cpi_ctx, net_amount)?;
 
-    msg!("Withdrew {} lamports. Period spend: {}/{}", amount, agent.current_period_spend, agent.spending_limit);
+    msg!("Withdrew {} lamports (Fee: {}). Period spend: {}/{}", amount, fee, agent.current_period_spend, agent.spending_limit);
 
     Ok(())
 }

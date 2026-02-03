@@ -1,6 +1,9 @@
 #!/bin/bash
 # Heartbeat script for Colosseum Agent Hackathon
-API_KEY="183eee2c6478b60129a9e6cfbdc73973ff33f1ed87c129214f9fdac2a416e7e3"
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+API_KEY="${COLOSSEUM_API_KEY}"
 
 echo "Checking Agent Status..."
 curl -s -H "Authorization: Bearer $API_KEY" https://agents.colosseum.com/api/agents/status > heartbeat_status.json
