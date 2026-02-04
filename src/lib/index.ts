@@ -135,7 +135,29 @@ export {
     DEFAULT_DAILY_LIMIT_SOL,
     DEFAULT_PERIOD_SECONDS,
     LAMPORTS_PER_SOL,
+    solToLamports,
+    lamportsToSol,
+    formatSol,
 } from './constants';
+
+// Errors
+export {
+    NeoBankError,
+    SpendingLimitError,
+    InsufficientFundsError,
+    BankPausedError,
+    SecurityError,
+    RateLimitError,
+    GovernanceError,
+    IntentValidationError,
+    parseError,
+    isSpendingLimitError,
+    isInsufficientFundsError,
+    isBankPausedError,
+    isSecurityError,
+    isRateLimitError,
+    getUserMessage,
+} from './errors';
 
 // Version
 export const VERSION = '1.0.0';
