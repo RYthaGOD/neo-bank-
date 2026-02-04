@@ -267,6 +267,127 @@ export async function batchValidate(
     return results;
 }
 
+// ============ RATE LIMITING ============
+
+export interface RateLimitConfig {
+    maxRequestsPerMinute: number;
+    maxAmountPerHour: number; // In SOL
+    cooldownAfterBlock: number; // Seconds to wait after a blocked tx
+}
+
+export const DEFAULT_RATE_LIMIT: RateLimitConfig = {
+    maxRequestsPerMinute: 10,
+    maxAmountPerHour: 100, // 100 SOL/hour
+    cooldownAfterBlock: 60, // 1 min cooldown after block
+};
+
+/**
+ * Rate Limiter - prevent rapid-fire withdrawals
+ * Tracks per-agent withdrawal frequency and volume
+ */
+export class RateLimiter {
+    private config: RateLimitConfig;
+    private requestLog: Map<string, number[]> = new Map(); // agent -> timestamps
+    private amountLog: Map<string, { amount: number; timestamp: number }[]> = new Map();
+    private cooldowns: Map<string, number> = new Map(); // agent -> cooldown expiry
+
+    constructor(config: Partial<RateLimitConfig> = {}) {
+        this.config = { ...DEFAULT_RATE_LIMIT, ...config };
+    }
+
+    /**
+     * Check if withdrawal is within rate limits
+     */
+    check(agentId: string, amountSol: number): { allowed: boolean; reason?: string } {
+        const now = Date.now();
+        const oneMinuteAgo = now - 60_000;
+        const oneHourAgo = now - 3600_000;
+
+        // Check cooldown
+        const cooldownExpiry = this.cooldowns.get(agentId) || 0;
+        if (now < cooldownExpiry) {
+            const waitSec = Math.ceil((cooldownExpiry - now) / 1000);
+            return { 
+                allowed: false, 
+                reason: `Rate limited: wait ${waitSec}s (cooldown after blocked tx)` 
+            };
+        }
+
+        // Check requests per minute
+        const requests = this.requestLog.get(agentId) || [];
+        const recentRequests = requests.filter(t => t > oneMinuteAgo);
+        if (recentRequests.length >= this.config.maxRequestsPerMinute) {
+            return { 
+                allowed: false, 
+                reason: `Rate limited: max ${this.config.maxRequestsPerMinute} requests/min` 
+            };
+        }
+
+        // Check amount per hour
+        const amounts = this.amountLog.get(agentId) || [];
+        const recentAmounts = amounts.filter(a => a.timestamp > oneHourAgo);
+        const totalAmount = recentAmounts.reduce((sum, a) => sum + a.amount, 0);
+        if (totalAmount + amountSol > this.config.maxAmountPerHour) {
+            return { 
+                allowed: false, 
+                reason: `Rate limited: max ${this.config.maxAmountPerHour} SOL/hour (used: ${totalAmount.toFixed(2)})` 
+            };
+        }
+
+        return { allowed: true };
+    }
+
+    /**
+     * Record a withdrawal attempt
+     */
+    record(agentId: string, amountSol: number): void {
+        const now = Date.now();
+        
+        // Log request
+        const requests = this.requestLog.get(agentId) || [];
+        requests.push(now);
+        this.requestLog.set(agentId, requests.slice(-100)); // Keep last 100
+
+        // Log amount
+        const amounts = this.amountLog.get(agentId) || [];
+        amounts.push({ amount: amountSol, timestamp: now });
+        this.amountLog.set(agentId, amounts.slice(-100));
+    }
+
+    /**
+     * Apply cooldown after a blocked transaction
+     */
+    applyCooldown(agentId: string): void {
+        const expiry = Date.now() + this.config.cooldownAfterBlock * 1000;
+        this.cooldowns.set(agentId, expiry);
+    }
+
+    /**
+     * Get current rate limit status for an agent
+     */
+    getStatus(agentId: string): {
+        requestsLastMinute: number;
+        amountLastHour: number;
+        cooldownRemaining: number;
+    } {
+        const now = Date.now();
+        const requests = this.requestLog.get(agentId) || [];
+        const amounts = this.amountLog.get(agentId) || [];
+        const cooldownExpiry = this.cooldowns.get(agentId) || 0;
+
+        return {
+            requestsLastMinute: requests.filter(t => t > now - 60_000).length,
+            amountLastHour: amounts
+                .filter(a => a.timestamp > now - 3600_000)
+                .reduce((sum, a) => sum + a.amount, 0),
+            cooldownRemaining: Math.max(0, Math.ceil((cooldownExpiry - now) / 1000)),
+        };
+    }
+}
+
+// Global rate limiter instance
+export const globalRateLimiter = new RateLimiter();
+
 // ============ SECURITY EVENTS ============
 
 export interface SecurityEvent {
@@ -280,14 +401,16 @@ export interface SecurityEvent {
 export type SecurityEventHandler = (event: SecurityEvent) => void;
 
 /**
- * Security Monitor - real-time event streaming
+ * Security Monitor - real-time event streaming with rate limiting
  */
 export class SecurityMonitor {
     private handlers: SecurityEventHandler[] = [];
     private layer: NeoBankSecurityLayer;
+    private rateLimiter: RateLimiter;
 
-    constructor(config?: Partial<SecurityConfig>) {
+    constructor(config?: Partial<SecurityConfig>, rateConfig?: Partial<RateLimitConfig>) {
         this.layer = new NeoBankSecurityLayer(config);
+        this.rateLimiter = new RateLimiter(rateConfig);
     }
 
     onEvent(handler: SecurityEventHandler): void {
@@ -300,12 +423,56 @@ export class SecurityMonitor {
         }
     }
 
-    async monitor(destination: PublicKey | string, amount: number): Promise<SecurityCheckResult> {
+    /**
+     * Monitor with rate limiting
+     * @param agentId - Agent identifier for rate limiting
+     */
+    async monitor(
+        destination: PublicKey | string, 
+        amount: number,
+        agentId?: string
+    ): Promise<SecurityCheckResult> {
         const address = typeof destination === "string" 
             ? destination 
             : destination.toBase58();
         
+        // Rate limit check (if agentId provided)
+        if (agentId) {
+            const rateCheck = this.rateLimiter.check(agentId, amount);
+            if (!rateCheck.allowed) {
+                const result: SecurityCheckResult = {
+                    approved: false,
+                    checks: [{
+                        name: "Rate Limit",
+                        passed: false,
+                        details: rateCheck.reason!,
+                        source: "neo-bank",
+                    }],
+                    riskScore: 0,
+                    blockedReason: rateCheck.reason,
+                };
+                
+                this.emit({
+                    type: "block",
+                    timestamp: Date.now(),
+                    address,
+                    reason: rateCheck.reason!,
+                    riskScore: 0,
+                });
+                
+                return result;
+            }
+        }
+        
         const result = await this.layer.validateWithdrawal(destination, amount);
+        
+        // Record the attempt and apply cooldown if blocked
+        if (agentId) {
+            this.rateLimiter.record(agentId, amount);
+            if (!result.approved) {
+                this.rateLimiter.applyCooldown(agentId);
+            }
+        }
         
         const event: SecurityEvent = {
             type: result.approved ? "pass" : (result.riskScore > 50 ? "block" : "warn"),
@@ -317,6 +484,13 @@ export class SecurityMonitor {
         
         this.emit(event);
         return result;
+    }
+
+    /**
+     * Get rate limit status for an agent
+     */
+    getRateLimitStatus(agentId: string) {
+        return this.rateLimiter.getStatus(agentId);
     }
 }
 
