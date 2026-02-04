@@ -402,3 +402,109 @@ export interface HookStatus {
     triggerCount: number;
     stakedAmount: number;
 }
+
+// ============ SECURE WITHDRAWAL HELPER ============
+
+import { NeoBankSecurityLayer, SecurityCheckResult } from "./security-layer";
+
+/**
+ * Combined result of security check + intent validation
+ */
+export interface SecureWithdrawalCheck {
+    canProceed: boolean;
+    security: SecurityCheckResult;
+    intent: IntentValidationResult | null;
+    blockedReason?: string;
+}
+
+/**
+ * Helper class for secure withdrawals with full validation
+ */
+export class SecureAgentBank {
+    private bank: AgentNeoBank;
+    private security: NeoBankSecurityLayer;
+
+    constructor(bank: AgentNeoBank, securityConfig?: any) {
+        this.bank = bank;
+        this.security = new NeoBankSecurityLayer(securityConfig);
+    }
+
+    /**
+     * Full validation before withdrawal:
+     * 1. Security layer (scam detection, reputation)
+     * 2. Intent validation (spending limits, balance)
+     */
+    async validateWithdrawal(
+        owner: PublicKey,
+        destination: PublicKey,
+        amountSol: number
+    ): Promise<SecureWithdrawalCheck> {
+        // Step 1: Security checks
+        const securityResult = await this.security.validateWithdrawal(
+            destination,
+            amountSol
+        );
+
+        if (!securityResult.approved) {
+            return {
+                canProceed: false,
+                security: securityResult,
+                intent: null,
+                blockedReason: `Security: ${securityResult.blockedReason}`,
+            };
+        }
+
+        // Step 2: Intent validation (on-chain limits)
+        try {
+            const intentResult = await this.bank.validateIntent(
+                owner,
+                amountSol,
+                `Withdraw ${amountSol} SOL to ${destination.toBase58()}`
+            );
+
+            if (!intentResult.valid) {
+                return {
+                    canProceed: false,
+                    security: securityResult,
+                    intent: intentResult,
+                    blockedReason: `Limit: ${intentResult.reason}`,
+                };
+            }
+
+            return {
+                canProceed: true,
+                security: securityResult,
+                intent: intentResult,
+            };
+        } catch (error: any) {
+            return {
+                canProceed: false,
+                security: securityResult,
+                intent: null,
+                blockedReason: `Intent check failed: ${error.message}`,
+            };
+        }
+    }
+
+    /**
+     * Execute withdrawal only if all checks pass
+     */
+    async safeWithdraw(
+        owner: PublicKey,
+        destination: PublicKey,
+        amountSol: number
+    ): Promise<{ success: boolean; signature?: string; error?: string }> {
+        const check = await this.validateWithdrawal(owner, destination, amountSol);
+
+        if (!check.canProceed) {
+            return { success: false, error: check.blockedReason };
+        }
+
+        try {
+            const signature = await this.bank.withdraw(amountSol, destination);
+            return { success: true, signature };
+        } catch (error: any) {
+            return { success: false, error: error.message };
+        }
+    }
+}
