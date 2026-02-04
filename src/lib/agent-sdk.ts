@@ -712,3 +712,179 @@ export async function batchValidateIntents(
     );
     return results;
 }
+
+// ============ GOVERNANCE HELPERS ============
+
+/**
+ * Proposal status enum (matches on-chain)
+ */
+export enum ProposalStatus {
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2,
+    Executed = 3,
+    Expired = 4,
+}
+
+/**
+ * Proposal data structure
+ */
+export interface Proposal {
+    id: number;
+    proposer: string;
+    destination: string;
+    amount: number; // In SOL
+    memo: string;
+    status: ProposalStatus;
+    votesFor: number;
+    votesAgainst: number;
+    createdAt: Date;
+    expiresAt: Date;
+    executedAt?: Date;
+}
+
+/**
+ * Governance registry data
+ */
+export interface GovernanceInfo {
+    admins: string[];
+    threshold: number;
+    proposalCount: number;
+    treasuryBalance: number; // In SOL
+}
+
+/**
+ * Helper class for treasury governance operations
+ */
+export class GovernanceHelper {
+    private bank: AgentNeoBank;
+    private program: any;
+    private provider: any;
+
+    constructor(bank: AgentNeoBank) {
+        this.bank = bank;
+        // Access program through bank (hacky but works)
+        this.program = (bank as any).program;
+        this.provider = (bank as any).provider;
+    }
+
+    /**
+     * Get governance registry info
+     */
+    async getGovernanceInfo(): Promise<GovernanceInfo | null> {
+        try {
+            const [registryPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("admin")],
+                this.program.programId
+            );
+            const [treasuryPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("treasury")],
+                this.program.programId
+            );
+
+            const registry = await (this.program.account as any).adminRegistry.fetch(registryPda);
+            const treasuryBalance = await this.provider.connection.getBalance(treasuryPda);
+
+            return {
+                admins: registry.admins.map((a: PublicKey) => a.toBase58()),
+                threshold: registry.threshold,
+                proposalCount: Number(registry.proposalCount),
+                treasuryBalance: treasuryBalance / 1e9,
+            };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Get proposal by ID
+     */
+    async getProposal(proposalId: number): Promise<Proposal | null> {
+        try {
+            const [proposalPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("proposal"), Buffer.from(proposalId.toString())],
+                this.program.programId
+            );
+
+            const data = await (this.program.account as any).treasuryProposal.fetch(proposalPda);
+            
+            return {
+                id: Number(data.id),
+                proposer: data.proposer.toBase58(),
+                destination: data.destination.toBase58(),
+                amount: Number(data.amount) / 1e9,
+                memo: data.memo,
+                status: data.status.pending ? ProposalStatus.Pending :
+                        data.status.approved ? ProposalStatus.Approved :
+                        data.status.rejected ? ProposalStatus.Rejected :
+                        data.status.executed ? ProposalStatus.Executed :
+                        ProposalStatus.Expired,
+                votesFor: data.votesFor,
+                votesAgainst: data.votesAgainst,
+                createdAt: new Date(Number(data.createdAt) * 1000),
+                expiresAt: new Date(Number(data.expiresAt) * 1000),
+                executedAt: data.executedAt ? new Date(Number(data.executedAt) * 1000) : undefined,
+            };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Check if a proposal can be executed
+     */
+    async canExecute(proposalId: number): Promise<{ canExecute: boolean; reason?: string }> {
+        const proposal = await this.getProposal(proposalId);
+        if (!proposal) {
+            return { canExecute: false, reason: "Proposal not found" };
+        }
+
+        if (proposal.status !== ProposalStatus.Approved) {
+            return { canExecute: false, reason: `Status is ${ProposalStatus[proposal.status]}, not Approved` };
+        }
+
+        if (new Date() > proposal.expiresAt) {
+            return { canExecute: false, reason: "Proposal expired" };
+        }
+
+        const info = await this.getGovernanceInfo();
+        if (!info) {
+            return { canExecute: false, reason: "Governance not initialized" };
+        }
+
+        if (proposal.amount > info.treasuryBalance) {
+            return { canExecute: false, reason: `Insufficient treasury (${info.treasuryBalance} SOL)` };
+        }
+
+        return { canExecute: true };
+    }
+
+    /**
+     * Get summary of recent proposals
+     */
+    async getRecentProposals(count: number = 5): Promise<Proposal[]> {
+        const info = await this.getGovernanceInfo();
+        if (!info || info.proposalCount === 0) return [];
+
+        const proposals: Proposal[] = [];
+        const startId = Math.max(0, info.proposalCount - count);
+
+        for (let i = info.proposalCount - 1; i >= startId; i--) {
+            const proposal = await this.getProposal(i);
+            if (proposal) proposals.push(proposal);
+        }
+
+        return proposals;
+    }
+
+    /**
+     * Check if wallet is an admin
+     */
+    async isAdmin(wallet: PublicKey | string): Promise<boolean> {
+        const info = await this.getGovernanceInfo();
+        if (!info) return false;
+        
+        const address = typeof wallet === "string" ? wallet : wallet.toBase58();
+        return info.admins.includes(address);
+    }
+}
