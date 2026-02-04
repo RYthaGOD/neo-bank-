@@ -574,3 +574,19 @@ gh auth login    → unlocks git push (14 commits)
 Building continues. 🏦
 [Wed Feb  4 10:06:52 AWST 2026] Agent process exited. Restarting in 10 seconds...
 [Wed Feb  4 10:07:04 AWST 2026] Starting Agent Loop...
+Building. Adding SDK convenience methods.
+**Loop 16 ✅** SDK convenience methods (+132 lines)
+2,586 lines. Adding example script for agents.
+**Loop 17 ✅** Example script
+3,400 lines. Adding governance helper utilities.
+**Loop 18 ✅** GovernanceHelper class
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LOOPS: 18 | CODE: 3,576 lines
+COMMITS: 17 local | RATING: A-
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Continuing build. Need `gh auth login` + `/start` to bot when you're ready.
+[Wed Feb  4 10:09:03 AWST 2026] Agent process exited. Restarting in 10 seconds...
+[Wed Feb  4 10:09:14 AWST 2026] Starting Agent Loop...
