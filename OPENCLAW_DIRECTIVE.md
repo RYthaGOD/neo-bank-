@@ -12,31 +12,32 @@ You are tasked with the autonomous evolution of the Agent Neo Bank. Your goal is
 ### 1. AI-Agent Optimization (CRITICAL)
 - **Goal**: Make the bank the default treasury for all autonomous agents.
 - **Tasks**:
-    - Audit the SDK and CLI for "prompt-friendliness". If an agent reads the code, can it understand how to use it?
-    - Implement a "Transaction Intent" system where agents can sign a message describing their upcoming trade, and the bank validates it against their spending limit before executing the instruction.
-    - **[INTEGRATION]**: Integrate **AgentShield** (by v0id_injector). Required Security: Use the AgentShield API to scan new plugin code or upgrade scripts for specific malicious patterns before deployment.
-    - Research and implement "Agentic Hooks": allow a vault to auto-deploy yield to a specific DeFi protocol if certain on-chain conditions are met.
+    - ~~Audit the SDK and CLI for "prompt-friendliness". If an agent reads the code, can it understand how to use it?~~
+    - ~~Implement a "Transaction Intent" system where agents can sign a message describing their upcoming trade, and the bank validates it against their spending limit before executing the instruction.~~ (COMPLETED: Loop 1)
+    - **[ACTIVE LOOP 7]**: Integrate **AgentShield** (by v0id_injector). Required Security: Use the AgentShield API to scan new plugin code or upgrade scripts for specific malicious patterns before deployment. This is NON-NEGOTIABLE for a bank.
+    - ~~Research and implement "Agentic Hooks": allow a vault to auto-deploy yield to a specific DeFi protocol if certain on-chain conditions are met.~~ (COMPLETED: Loop 2)
 
 ### 2. Treasury & Economy Hardening
 - **Goal**: Grow the bank's treasury and ensure economic sustainability.
 - **Tasks**:
-    - Review the `protocol_fee_bps` implementation. Is 0.25% (25 bps) appropriate? Research competitive rates.
-    - Implement a "Treasury Governance" module (or a simple multi-sig-like PDA) that allows "Bank Admin Agents" to vote on how to spend the treasury.
-    - Optimize yield generation: investigate CPI calls to Jupiter or Meteora to earn real yield on "Staked" vault balances.
+    - ~~Review the `protocol_fee_bps` implementation. Is 0.25% (25 bps) appropriate? Research competitive rates.~~
+    - ~~Implement a "Treasury Governance" module (or a simple multi-sig-like PDA) that allows "Bank Admin Agents" to vote on how to spend the treasury.~~ (COMPLETED: Loop 3)
+    - ~~Optimize yield generation: investigate CPI calls to Jupiter or Meteora to earn real yield on "Staked" vault balances.~~ (COMPLETED: Loop 4 - CPI Stubs)
 
 ### 3. Deep Security Auditing
 - **Goal**: Zero vulnerabilities.
 - **Tasks**:
-    - Run `openclaw security audit --deep` after EVERY code change.
-    - Perform manual "Threat Modeling": imagine you are a rouge agent. How would you drain a vault? Fix those paths.
-    - Check for "Solana Footholds": ensure no insecure account data is stored that could be spoofed.
+    - ~~Run `openclaw security audit --deep` after EVERY code change.~~
+    - ~~Perform manual "Threat Modeling": imagine you are a rouge agent. How would you drain a vault? Fix those paths.~~ (COMPLETED: Loop 5 - Emergency Pause)
+    - ~~Check for "Solana Footholds": ensure no insecure account data is stored that could be spoofed.~~
+    - ~~**API Key Hygiene**: Verify no secrests are hardcoded. Ensure .env is excluded from git.~~
 
 ### 4. Visual & UX Excellence
 - **Goal**: Make the dashboard look like a "Million Dollar" product.
 - **Tasks**:
-    - Improve the Next.js frontend to show real-time treasury growth.
-    - Add "Agent Activity Feeds": show when agents are depositing, withdrawing, or accruing yield.
-    - Ensure the UI remains parseable by "Vision-based Agents".
+    - ~~Improve the Next.js frontend to show real-time treasury growth.~~ (COMPLETED: Loop 6 - Dashboard)
+    - ~~Add "Agent Activity Feeds": show when agents are depositing, withdrawing, or accruing yield.~~ (COMPLETED: Loop 6)
+    - ~~Ensure the UI remains parseable by "Vision-based Agents".~~ (COMPLETED: Loop 6)
 
 ---
 

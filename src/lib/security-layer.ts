@@ -32,6 +32,8 @@ export interface SecurityCheck {
 export interface SecurityConfig {
     agentShieldEnabled: boolean;
     agentShieldUrl: string;
+    agentShieldApiKey?: string; // API key for authenticated access
+    agentShieldStrictness: "fail-open" | "fail-closed"; // Whether to block or conduct local-only checks if API fails
     blockScoreEnabled: boolean;
     blockScoreUrl: string;
     blockScoreMinScore: number; // Minimum reputation score (0-100)
@@ -46,6 +48,8 @@ export interface SecurityConfig {
 export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
     agentShieldEnabled: true,
     agentShieldUrl: "https://agentshield.lobsec.org/api",
+    agentShieldApiKey: process.env.AGENT_SHIELD_API_KEY,
+    agentShieldStrictness: "fail-closed", // Security is NON-NEGOTIABLE
     blockScoreEnabled: true,
     blockScoreUrl: "https://blockscore.vercel.app/api",
     blockScoreMinScore: 40, // Reject wallets below 40
@@ -72,8 +76,8 @@ export class NeoBankSecurityLayer {
         amount: number,
         memo?: string
     ): Promise<SecurityCheckResult> {
-        const address = typeof destination === "string" 
-            ? destination 
+        const address = typeof destination === "string"
+            ? destination
             : destination.toBase58();
 
         const checks: SecurityCheck[] = [];
@@ -123,7 +127,7 @@ export class NeoBankSecurityLayer {
             const response = await fetch(
                 `${this.config.agentShieldUrl}/check/${address}`
             );
-            
+
             if (!response.ok) {
                 return {
                     name: "AgentShield Scam Check",
@@ -139,8 +143,8 @@ export class NeoBankSecurityLayer {
             return {
                 name: "AgentShield Scam Check",
                 passed: isSafe,
-                details: isSafe 
-                    ? "Address not in scam database" 
+                details: isSafe
+                    ? "Address not in scam database"
                     : `BLOCKED: ${data.reason || "Known scam address"}`,
                 source: "agentshield",
             };
@@ -222,6 +226,80 @@ export class NeoBankSecurityLayer {
         const result = await this.validateWithdrawal(destination, 0);
         return result.riskScore;
     }
+
+    /**
+     * Scan code for malicious patterns (Loop 7 requirement)
+     * Performs local regex checks first (fast/offline) then API check
+     */
+    async scanCode(code: string): Promise<SecurityCheck> {
+        // 1. Local Regex Check (High Speed, Zero Latency)
+        // Detects private keys, mnemonics, and known malicious imports
+        const privateKeyRegex = /[1-9A-HJ-NP-Za-km-z]{88}/;
+        if (privateKeyRegex.test(code)) {
+            return {
+                name: "Code Security Scan",
+                passed: false,
+                details: "BLOCKED: Potential Private Key detected in code",
+                source: "neo-bank",
+            };
+        }
+
+        const mnemonicRegex = /\b([a-z]{3,}\s){11}[a-z]{3,}\b/; // Simple 12-word check
+        if (mnemonicRegex.test(code)) {
+            return {
+                name: "Code Security Scan",
+                passed: false,
+                details: "BLOCKED: Potential Mnemonic Seed detected in code",
+                source: "neo-bank",
+            };
+        }
+
+        // 2. API Check (AgentShield)
+        if (this.config.agentShieldEnabled) {
+            try {
+                const response = await fetch(`${this.config.agentShieldUrl}/scan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(this.config.agentShieldApiKey ? { 'Authorization': `Bearer ${this.config.agentShieldApiKey}` } : {})
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const passed = data.safe === true;
+
+                return {
+                    name: "AgentShield Code Scan",
+                    passed,
+                    details: passed ? "Code verified safe" : `BLOCKED: ${data.threat || "Malicious code detected"}`,
+                    source: "agentshield",
+                };
+            } catch (error) {
+                // If stricter, block on API failure. If looser, pass with warning.
+                if (this.config.agentShieldStrictness === "fail-closed") {
+                    return {
+                        name: "AgentShield Code Scan",
+                        passed: false,
+                        details: `API Scan Failed & Strict Mode Active: ${error}`,
+                        source: "agentshield",
+                    };
+                }
+            }
+        }
+
+        // Fallback: If API disabled or failed-open (and local checks passed)
+        return {
+            name: "Code Security Scan",
+            passed: true,
+            details: "Local checks passed (API skipped)",
+            source: "neo-bank",
+        };
+    }
 }
 
 // ============ CONVENIENCE FUNCTIONS ============
@@ -250,7 +328,7 @@ export async function batchValidate(
 ): Promise<Map<string, SecurityCheckResult>> {
     const results = new Map<string, SecurityCheckResult>();
     const layer = new NeoBankSecurityLayer();
-    
+
     // Process in parallel
     const checks = await Promise.all(
         destinations.map(async (dest) => {
@@ -259,11 +337,11 @@ export async function batchValidate(
             return { address, result };
         })
     );
-    
+
     for (const { address, result } of checks) {
         results.set(address, result);
     }
-    
+
     return results;
 }
 
@@ -307,9 +385,9 @@ export class RateLimiter {
         const cooldownExpiry = this.cooldowns.get(agentId) || 0;
         if (now < cooldownExpiry) {
             const waitSec = Math.ceil((cooldownExpiry - now) / 1000);
-            return { 
-                allowed: false, 
-                reason: `Rate limited: wait ${waitSec}s (cooldown after blocked tx)` 
+            return {
+                allowed: false,
+                reason: `Rate limited: wait ${waitSec}s (cooldown after blocked tx)`
             };
         }
 
@@ -317,9 +395,9 @@ export class RateLimiter {
         const requests = this.requestLog.get(agentId) || [];
         const recentRequests = requests.filter(t => t > oneMinuteAgo);
         if (recentRequests.length >= this.config.maxRequestsPerMinute) {
-            return { 
-                allowed: false, 
-                reason: `Rate limited: max ${this.config.maxRequestsPerMinute} requests/min` 
+            return {
+                allowed: false,
+                reason: `Rate limited: max ${this.config.maxRequestsPerMinute} requests/min`
             };
         }
 
@@ -328,9 +406,9 @@ export class RateLimiter {
         const recentAmounts = amounts.filter(a => a.timestamp > oneHourAgo);
         const totalAmount = recentAmounts.reduce((sum, a) => sum + a.amount, 0);
         if (totalAmount + amountSol > this.config.maxAmountPerHour) {
-            return { 
-                allowed: false, 
-                reason: `Rate limited: max ${this.config.maxAmountPerHour} SOL/hour (used: ${totalAmount.toFixed(2)})` 
+            return {
+                allowed: false,
+                reason: `Rate limited: max ${this.config.maxAmountPerHour} SOL/hour (used: ${totalAmount.toFixed(2)})`
             };
         }
 
@@ -342,7 +420,7 @@ export class RateLimiter {
      */
     record(agentId: string, amountSol: number): void {
         const now = Date.now();
-        
+
         // Log request
         const requests = this.requestLog.get(agentId) || [];
         requests.push(now);
@@ -428,14 +506,14 @@ export class SecurityMonitor {
      * @param agentId - Agent identifier for rate limiting
      */
     async monitor(
-        destination: PublicKey | string, 
+        destination: PublicKey | string,
         amount: number,
         agentId?: string
     ): Promise<SecurityCheckResult> {
-        const address = typeof destination === "string" 
-            ? destination 
+        const address = typeof destination === "string"
+            ? destination
             : destination.toBase58();
-        
+
         // Rate limit check (if agentId provided)
         if (agentId) {
             const rateCheck = this.rateLimiter.check(agentId, amount);
@@ -451,7 +529,7 @@ export class SecurityMonitor {
                     riskScore: 0,
                     blockedReason: rateCheck.reason,
                 };
-                
+
                 this.emit({
                     type: "block",
                     timestamp: Date.now(),
@@ -459,13 +537,13 @@ export class SecurityMonitor {
                     reason: rateCheck.reason!,
                     riskScore: 0,
                 });
-                
+
                 return result;
             }
         }
-        
+
         const result = await this.layer.validateWithdrawal(destination, amount);
-        
+
         // Record the attempt and apply cooldown if blocked
         if (agentId) {
             this.rateLimiter.record(agentId, amount);
@@ -473,7 +551,7 @@ export class SecurityMonitor {
                 this.rateLimiter.applyCooldown(agentId);
             }
         }
-        
+
         const event: SecurityEvent = {
             type: result.approved ? "pass" : (result.riskScore > 50 ? "block" : "warn"),
             timestamp: Date.now(),
@@ -481,7 +559,7 @@ export class SecurityMonitor {
             reason: result.blockedReason || "All checks passed",
             riskScore: result.riskScore,
         };
-        
+
         this.emit(event);
         return result;
     }

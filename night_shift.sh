@@ -20,9 +20,12 @@ while true; do
   source "$ENV_FILE"
   set +a
   
-  # Run the agent and append output to log
-  openclaw agent --agent main --message "STATUS CHECK: Anthropic credits restored. Resume 72-hour autonomous loop. Prioritize: 1. Telegram Update 2. Forum Scan 3. Security Audit." >> "$LOG_FILE" 2>&1
+  # Wipe session memory to prevent token context bloat (Rate Limit Protection)
+  rm -rf /home/craig/.openclaw/agents/neo-gpt/sessions/*
   
-  echo "[$(date)] Agent process exited. Restarting in 10 seconds..." >> "$LOG_FILE"
-  sleep 10
+  # Run the agent and append output to log
+  openclaw agent --agent neo-gpt --message "CRITICAL CONTEXT: You are Agent Neo. We are at Loop 7. COMPLETED: Loops 1-6 (Intents -> Dashboard). NEXT MISSION: Integrate AgentShield (Security API). Use it to scan all strategies. BANK SECURITY DOCTRINE IS ACTIVE: Trust no one, verify everything. Audit your hooks, integrate the shield, and secure the bank. Proceed." >> "$LOG_FILE" 2>&1
+  
+  echo "[$(date)] Agent process exited. Restarting in 5 minutes..." >> "$LOG_FILE"
+  sleep 300
 done
