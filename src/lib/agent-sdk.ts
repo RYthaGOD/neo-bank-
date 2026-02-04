@@ -408,6 +408,113 @@ export class AgentNeoBank {
             return { paused: false, reason: "none" };
         }
     }
+
+    // ============ CONVENIENCE METHODS ============
+
+    /**
+     * 📊 Get complete agent status in one call
+     * 
+     * Returns everything an agent needs to make financial decisions:
+     * - Current balance
+     * - Spending status
+     * - Yield hook status
+     * - Bank pause status
+     * 
+     * @example
+     * const status = await bank.getFullStatus(owner);
+     * console.log(`Balance: ${status.vaultBalance} SOL`);
+     * console.log(`Can spend: ${status.spending.remainingBudget} more today`);
+     */
+    public async getFullStatus(owner: PublicKey): Promise<AgentFullStatus> {
+        const agentPda = this.getAgentPda(owner);
+        const vaultPda = this.getVaultPda(agentPda);
+
+        const [agentData, vaultBalance, spending, hookStatus, pauseStatus] = await Promise.all([
+            this.getAgentData(owner),
+            this.provider.connection.getBalance(vaultPda),
+            this.getSpendingStatus(owner),
+            this.getHookStatus(owner),
+            this.getPauseStatus(),
+        ]);
+
+        return {
+            agent: {
+                name: agentData.name,
+                owner: agentData.owner.toBase58(),
+                totalDeposited: Number(agentData.totalDeposited) / 1e9,
+                stakedAmount: Number(agentData.stakedAmount) / 1e9,
+            },
+            vaultBalance: vaultBalance / 1e9,
+            spending: {
+                limit: spending.spendingLimit / 1e9,
+                spent: spending.currentPeriodSpend / 1e9,
+                remaining: spending.remainingBudget / 1e9,
+                resetsAt: new Date(spending.periodResetsAt * 1000).toISOString(),
+            },
+            hook: hookStatus,
+            paused: pauseStatus,
+        };
+    }
+
+    /**
+     * 💰 Quick check: Can I afford this withdrawal?
+     * 
+     * Simple boolean check for common use case.
+     * 
+     * @example
+     * if (await bank.canAfford(owner, 5)) {
+     *   await bank.withdraw(5, destination);
+     * }
+     */
+    public async canAfford(owner: PublicKey, amountSol: number): Promise<boolean> {
+        try {
+            const result = await this.validateIntent(owner, amountSol, "affordability check");
+            return result.valid;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * 🔄 Get vault balance in SOL
+     */
+    public async getBalance(owner: PublicKey): Promise<number> {
+        const agentPda = this.getAgentPda(owner);
+        const vaultPda = this.getVaultPda(agentPda);
+        const balance = await this.provider.connection.getBalance(vaultPda);
+        return balance / 1e9;
+    }
+}
+
+/**
+ * Full agent status (from getFullStatus)
+ */
+export interface AgentFullStatus {
+    agent: {
+        name: string;
+        owner: string;
+        totalDeposited: number;
+        stakedAmount: number;
+    };
+    vaultBalance: number;
+    spending: {
+        limit: number;
+        spent: number;
+        remaining: number;
+        resetsAt: string;
+    };
+    hook: {
+        enabled: boolean;
+        protocol: any;
+        deployPercentage: number;
+        lastTriggered: number;
+        triggerCount: number;
+        stakedAmount: number;
+    };
+    paused: {
+        paused: boolean;
+        reason: string;
+    };
 }
 
 /**
