@@ -69,6 +69,22 @@ if (result.success) {
 }
 ```
 
+### CLI Usage
+
+```bash
+# Check agent status
+npm run cli -- status
+
+# Validate withdrawal before executing
+npm run cli -- validate 5
+
+# Register new agent (10 SOL daily limit)
+npm run cli -- register MyBot 10
+
+# All commands
+npm run cli -- help
+```
+
 ### For Developers
 
 ```bash
