@@ -104,7 +104,7 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 - [ ] Agent Activity Feeds (UI)
 - [ ] SDK Prompt-Friendliness Audit
 
-## 🤝 Partner Integrations (15 Total)
+## 🤝 Partner Integrations (22 Potential)
 | Partner | Integration | Status |
 |---------|------------|--------|
 | AgentShield (v0id_injector) | Scam detection | ✅ Live |
