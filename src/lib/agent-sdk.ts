@@ -508,3 +508,39 @@ export class SecureAgentBank {
         }
     }
 }
+
+// ============ BATCH OPERATIONS ============
+
+/**
+ * Batch validate multiple withdrawal intents
+ * Useful for portfolio rebalancing planning
+ */
+export async function batchValidateIntents(
+    bank: AgentNeoBank,
+    owner: PublicKey,
+    intents: { destination: PublicKey; amount: number; memo: string }[]
+): Promise<{ destination: string; valid: boolean; reason?: string }[]> {
+    const results = await Promise.all(
+        intents.map(async (intent) => {
+            try {
+                const result = await bank.validateIntent(
+                    owner,
+                    intent.amount,
+                    intent.memo
+                );
+                return {
+                    destination: intent.destination.toBase58(),
+                    valid: result.valid,
+                    reason: result.reason,
+                };
+            } catch (error: any) {
+                return {
+                    destination: intent.destination.toBase58(),
+                    valid: false,
+                    reason: error.message,
+                };
+            }
+        })
+    );
+    return results;
+}
