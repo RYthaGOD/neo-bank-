@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3000} -H 0.0.0.0",
     "lint": "eslint",
-    "postinstall": "echo 'Postinstall skipped for build speed'"
+    "postinstall": "echo 'Postinstall skipped for build speed'",
+    "cli": "npx ts-node src/cli/neo-bank-cli.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
