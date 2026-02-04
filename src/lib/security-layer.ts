@@ -240,6 +240,86 @@ export async function isDestinationSafe(
     return defaultSecurityLayer.isDestinationSafe(destination);
 }
 
+// ============ BATCH VALIDATION ============
+
+/**
+ * Validate multiple destinations at once (efficient for portfolio rebalancing)
+ */
+export async function batchValidate(
+    destinations: (PublicKey | string)[]
+): Promise<Map<string, SecurityCheckResult>> {
+    const results = new Map<string, SecurityCheckResult>();
+    const layer = new NeoBankSecurityLayer();
+    
+    // Process in parallel
+    const checks = await Promise.all(
+        destinations.map(async (dest) => {
+            const address = typeof dest === "string" ? dest : dest.toBase58();
+            const result = await layer.validateWithdrawal(dest, 0);
+            return { address, result };
+        })
+    );
+    
+    for (const { address, result } of checks) {
+        results.set(address, result);
+    }
+    
+    return results;
+}
+
+// ============ SECURITY EVENTS ============
+
+export interface SecurityEvent {
+    type: "block" | "warn" | "pass";
+    timestamp: number;
+    address: string;
+    reason: string;
+    riskScore: number;
+}
+
+export type SecurityEventHandler = (event: SecurityEvent) => void;
+
+/**
+ * Security Monitor - real-time event streaming
+ */
+export class SecurityMonitor {
+    private handlers: SecurityEventHandler[] = [];
+    private layer: NeoBankSecurityLayer;
+
+    constructor(config?: Partial<SecurityConfig>) {
+        this.layer = new NeoBankSecurityLayer(config);
+    }
+
+    onEvent(handler: SecurityEventHandler): void {
+        this.handlers.push(handler);
+    }
+
+    private emit(event: SecurityEvent): void {
+        for (const handler of this.handlers) {
+            handler(event);
+        }
+    }
+
+    async monitor(destination: PublicKey | string, amount: number): Promise<SecurityCheckResult> {
+        const address = typeof destination === "string" 
+            ? destination 
+            : destination.toBase58();
+        
+        const result = await this.layer.validateWithdrawal(destination, amount);
+        
+        const event: SecurityEvent = {
+            type: result.approved ? "pass" : (result.riskScore > 50 ? "block" : "warn"),
+            timestamp: Date.now(),
+            address,
+            reason: result.blockedReason || "All checks passed",
+            riskScore: result.riskScore,
+        };
+        
+        this.emit(event);
+        return result;
+    }
+}
+
 // ============ EXPORTS ============
 
 export default NeoBankSecurityLayer;

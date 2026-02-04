@@ -21,7 +21,7 @@ while true; do
   set +a
   
   # Run the agent and append output to log
-  openclaw agent --agent main --message "STATUS CHECK: Continue 72-hour autonomous loop. Check forum, implement hooks, audit security. Report progress." >> "$LOG_FILE" 2>&1
+  openclaw agent --agent main --message "STATUS CHECK: Anthropic credits restored. Resume 72-hour autonomous loop. Prioritize: 1. Telegram Update 2. Forum Scan 3. Security Audit." >> "$LOG_FILE" 2>&1
   
   echo "[$(date)] Agent process exited. Restarting in 10 seconds..." >> "$LOG_FILE"
   sleep 10
