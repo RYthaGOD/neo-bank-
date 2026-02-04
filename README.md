@@ -145,16 +145,34 @@ Every withdrawal passes through:
 ## 📊 Stats
 
 - **Program ID:** `BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh`
-- **Lines of Rust:** 2100+
-- **SDK Methods:** 20+
-- **Test Coverage:** Core flows covered
+- **Total Lines:** 5,500+
+- **Rust (on-chain):** 1,348 lines
+- **TypeScript (SDK):** 4,000+ lines
+- **SDK Modules:** 8 (agent-sdk, security, webhooks, analytics, config, prompts, constants, CLI)
+- **Instructions:** 14
+- **Security Rating:** A-
+- **Test Coverage:** Core flows + unit tests
 - **Built in:** 72-hour autonomous loop
 
 ## 📚 Documentation
 
 - [SDK Guide](./SDK_GUIDE.md) — Agent-readable documentation
 - [Walkthrough](./walkthrough.md) — Detailed feature breakdown
-- [Security Audit](./SECURITY_AUDIT.md) — Self-audit report
+- [Security Audit](./SECURITY_AUDIT.md) — Self-audit report (A-)
+- [Submission](./SUBMISSION.md) — Hackathon submission summary
+
+## 🛠️ SDK Modules
+
+| Module | Purpose |
+|--------|---------|
+| `agent-sdk` | Core banking operations |
+| `security-layer` | Multi-source validation + rate limiting |
+| `webhooks` | Real-time event notifications |
+| `analytics` | Metrics and reporting |
+| `config` | Environment configuration |
+| `agent-prompts` | LLM integration templates |
+| `constants` | Program values and helpers |
+| `cli` | Command-line interface |
 
 ## 🏆 Hackathon
 
