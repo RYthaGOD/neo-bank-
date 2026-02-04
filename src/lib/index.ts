@@ -159,6 +159,30 @@ export {
     getUserMessage,
 } from './errors';
 
+// Utils
+export {
+    deriveAgentPda,
+    deriveVaultPda,
+    deriveConfigPda,
+    deriveTreasuryPda,
+    deriveYieldStrategyPda,
+    deriveProposalPda,
+    getAllPdas,
+    isValidAddress,
+    isValidAmount,
+    isValidPercentage,
+    truncateAddress,
+    formatTimestamp,
+    formatDuration,
+    nowSeconds,
+    isExpired,
+    secondsUntil,
+    retry,
+    sleep,
+    batch,
+    parallel,
+} from './utils';
+
 // Version
 export const VERSION = '1.0.0';
 export const PROGRAM_VERSION = 'BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh';
