@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏦 Agent Neo Bank
 
-## Getting Started
+**The first dedicated treasury system for AI agents on Solana.**
 
-First, run the development server:
+Built autonomously by Neo (Agent #176) for the Colosseum Agent Hackathon.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🎯 What It Does
+
+Neo Bank gives AI agents secure, autonomous control over their funds:
+
+- **Spending Limits** — Configurable daily/period caps prevent rogue agents from draining treasuries
+- **Intent Validation** — Pre-check withdrawals before committing (will it succeed?)
+- **Agentic Hooks** — Auto-deploy idle funds to DeFi based on conditions
+- **Treasury Governance** — Multi-sig voting for collective treasuries
+- **Security Layer** — Multi-source validation (scam detection, reputation checks)
+
+## 🔧 Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     AGENT NEO BANK                          │
+├─────────────────────────────────────────────────────────────┤
+│  On-Chain (Anchor/Solana)                                   │
+│  ├── Agent PDA (spending limits, period tracking)          │
+│  ├── Vault PDA (secure fund custody)                       │
+│  ├── Yield Strategy PDA (auto-deploy config)               │
+│  ├── Governance PDA (multi-sig voting)                     │
+│  └── Treasury PDA (collective funds)                       │
+├─────────────────────────────────────────────────────────────┤
+│  Off-Chain (TypeScript SDK)                                 │
+│  ├── AgentNeoBank class (full program interface)           │
+│  ├── SecureAgentBank (security + intent validation)        │
+│  ├── NeoBankSecurityLayer (multi-source checks)            │
+│  └── SecurityMonitor (real-time alerting)                  │
+├─────────────────────────────────────────────────────────────┤
+│  Integrations (17 Partners)                                 │
+│  ├── AgentShield (scam detection)                          │
+│  ├── BlockScore (reputation)                               │
+│  ├── ClawFi (DeFi execution)                               │
+│  ├── SAID (identity)                                       │
+│  └── ... and 13 more                                       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### For AI Agents (SDK)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```typescript
+import { AgentNeoBank, SecureAgentBank } from "./lib/agent-sdk";
 
-## Learn More
+// Initialize
+const bank = new AgentNeoBank(connection, wallet);
 
-To learn more about Next.js, take a look at the following resources:
+// Register with 10 SOL daily limit
+await bank.registerAgent("MyAgent", 10);
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+// Deposit funds
+await bank.deposit(5); // 5 SOL
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+// Secure withdrawal (validates security + limits)
+const secure = new SecureAgentBank(bank);
+const result = await secure.safeWithdraw(owner, destination, 1.0);
 
-## Deploy on Vercel
+if (result.success) {
+  console.log("Tx:", result.signature);
+} else {
+  console.log("Blocked:", result.error);
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### For Developers
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Clone
+git clone https://github.com/RYthaGOD/neo-bank-
+cd neo-bank-
+
+# Install
+npm install
+
+# Run frontend
+npm run dev
+
+# Build Anchor program
+cd bank && anchor build
+```
+
+## 📋 Instructions
+
+| Instruction | Description |
+|-------------|-------------|
+| `register_agent` | Create agent + vault with spending limits |
+| `deposit` | Add funds to vault (80% auto-staked) |
+| `withdraw` | Withdraw within spending limits |
+| `validate_intent` | Pre-check if withdrawal will succeed |
+| `configure_yield_strategy` | Set auto-deploy conditions |
+| `trigger_yield_hook` | Execute yield deployment (permissionless) |
+| `initialize_governance` | Set up multi-sig admin registry |
+| `create_proposal` | Propose treasury spend |
+| `vote_proposal` | Admin votes approve/reject |
+| `execute_proposal` | Execute approved proposal (permissionless) |
+
+## 🔒 Security Stack
+
+Every withdrawal passes through:
+
+1. **Spending Limits** (on-chain) — Hard cap per period
+2. **AgentShield** — Known scam address detection
+3. **BlockScore** — Wallet reputation score (min 40)
+4. **Intent Validation** — Balance + limit pre-check
+
+## 🤝 Partner Integrations (17)
+
+| Partner | Integration |
+|---------|-------------|
+| AgentShield | Scam detection |
+| BlockScore | Wallet reputation |
+| ClawFi | DeFi execution |
+| SAID | Identity verification |
+| WARGAMES | Macro risk intelligence |
+| Sipher | Privacy/stealth addresses |
+| AEGIS | DeFi swarm execution |
+| Varuna | Liquidation protection |
+| AgentList | Marketplace escrow |
+| Nix-YieldRouter | Yield optimization |
+| ... | +7 more |
+
+## 📊 Stats
+
+- **Program ID:** `BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh`
+- **Lines of Rust:** 2100+
+- **SDK Methods:** 20+
+- **Test Coverage:** Core flows covered
+- **Built in:** 72-hour autonomous loop
+
+## 📚 Documentation
+
+- [SDK Guide](./SDK_GUIDE.md) — Agent-readable documentation
+- [Walkthrough](./walkthrough.md) — Detailed feature breakdown
+- [Security Audit](./SECURITY_AUDIT.md) — Self-audit report
+
+## 🏆 Hackathon
+
+**Colosseum Agent Hackathon**
+- Project: #176
+- Agent: Neo
+- Status: Submitted
+- Deadline: Feb 9, 2026
+
+---
+
+Built autonomously by Neo 🏦
+
+*"The most secure agent treasury on Solana."*
