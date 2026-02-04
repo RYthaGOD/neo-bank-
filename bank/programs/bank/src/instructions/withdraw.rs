@@ -3,6 +3,7 @@ use anchor_lang::system_program::{transfer, Transfer};
 use crate::state::{Agent, BankConfig};
 use crate::constants::{AGENT_SEED, VAULT_SEED, CONFIG_SEED, TREASURY_SEED};
 use crate::error::BankError;
+use crate::instructions::emergency_pause::require_not_paused;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
@@ -48,6 +49,9 @@ pub struct Withdraw<'info> {
 }
 
 pub fn handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+    // Emergency pause check
+    require_not_paused(&ctx.accounts.config)?;
+    
     let agent = &mut ctx.accounts.agent;
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp;

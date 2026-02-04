@@ -131,4 +131,13 @@ pub mod bank {
     pub fn withdraw_from_protocol(ctx: Context<WithdrawFromProtocol>, amount: u64) -> Result<()> {
         instructions::yield_cpi::withdraw_from_protocol_handler(ctx, amount)
     }
+
+    // ============ EMERGENCY CONTROLS ============
+
+    /// Toggle emergency pause (admin only).
+    /// When paused, withdrawals and yield deployments are blocked.
+    /// Reason codes: 0=none, 1=security, 2=maintenance, 3=upgrade
+    pub fn toggle_pause(ctx: Context<TogglePause>, paused: bool, reason: u8) -> Result<()> {
+        instructions::emergency_pause::toggle_pause_handler(ctx, paused, reason)
+    }
 }

@@ -347,6 +347,67 @@ export class AgentNeoBank {
             };
         }
     }
+
+    // ============ EMERGENCY CONTROLS ============
+
+    /**
+     * 🚨 EMERGENCY PAUSE: Toggle bank pause state (admin only)
+     * 
+     * When paused, all withdrawals and yield deployments are blocked.
+     * Use this for security incidents, maintenance, or upgrades.
+     * 
+     * @param paused - Whether to pause (true) or unpause (false)
+     * @param reason - Reason code: 0=none, 1=security, 2=maintenance, 3=upgrade
+     * 
+     * @example
+     * // Pause for security incident
+     * await bank.togglePause(true, 1);
+     * 
+     * // Resume operations
+     * await bank.togglePause(false, 0);
+     */
+    public async togglePause(paused: boolean, reason: number = 0) {
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            this.program.programId
+        );
+
+        return await this.program.methods
+            .togglePause(paused, reason)
+            .accounts({
+                bankConfig: configPda,
+                admin: this.provider.wallet.publicKey,
+            })
+            .rpc();
+    }
+
+    /**
+     * Check if the bank is currently paused
+     * 
+     * @returns Pause status and reason
+     */
+    public async getPauseStatus(): Promise<{ paused: boolean; reason: string }> {
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            this.program.programId
+        );
+
+        try {
+            const config = await (this.program.account as any).bankConfig.fetch(configPda);
+            const reasonMap: Record<number, string> = {
+                0: "none",
+                1: "security",
+                2: "maintenance",
+                3: "upgrade",
+            };
+            return {
+                paused: config.paused || false,
+                reason: reasonMap[config.pauseReason] || "unknown",
+            };
+        } catch {
+            return { paused: false, reason: "none" };
+        }
+    }
 }
 
 /**

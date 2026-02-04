@@ -7,6 +7,8 @@ pub struct BankConfig {
     pub protocol_fee_bps: u16,        // Fee in basis points (e.g., 25 = 0.25%)
     pub treasury_bump: u8,
     pub total_fees_collected: u64,
+    pub paused: bool,                 // Emergency pause flag
+    pub pause_reason: u8,             // 0=none, 1=security, 2=maintenance, 3=upgrade
 }
 
 #[account]

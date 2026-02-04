@@ -37,4 +37,8 @@ pub enum BankError {
     InvalidDestination,
     #[msg("Invalid protocol for this operation.")]
     InvalidProtocol,
+    #[msg("Unauthorized: only admin can perform this action.")]
+    Unauthorized,
+    #[msg("Bank is paused for emergency. Check pause_reason.")]
+    BankPaused,
 }
