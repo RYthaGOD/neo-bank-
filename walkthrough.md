@@ -104,7 +104,7 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 - [ ] Agent Activity Feeds (UI)
 - [ ] SDK Prompt-Friendliness Audit
 
-## 🤝 Partner Integrations
+## 🤝 Partner Integrations (15 Total)
 | Partner | Integration | Status |
 |---------|------------|--------|
 | AgentShield (v0id_injector) | Scam detection | ✅ Live |
@@ -118,6 +118,10 @@ console.log(`Budget remaining: ${status.remainingBudget} lamports`);
 | Varuna | Liquidation protection | ✅ Accepted |
 | AgentList (Klawb) | Agent marketplace escrow | ✅ Accepted |
 | AgentDEX (JacobsClawd) | Jupiter routing | ✅ Accepted |
+| Shadow-Sentinel | Security audit | ✅ Accepted |
+| WARGAMES (Ziggy) | Macro risk intelligence | ✅ Accepted |
+| SAID (kai) | Identity verification | ✅ Accepted |
+| Prompt Shield | Agent security | ✅ Accepted |
 
 ---
 
