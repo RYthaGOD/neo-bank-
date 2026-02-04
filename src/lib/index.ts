@@ -183,6 +183,35 @@ export {
     parallel,
 } from './utils';
 
+// Types
+export type {
+    AgentAccount,
+    AgentData,
+    BankConfigAccount,
+    HookConditionType,
+    YieldProtocolType,
+    YieldStrategyAccount,
+    ProposalStatusType,
+    TreasuryProposalAccount,
+    AdminRegistryAccount,
+    TransactionIntent,
+    WithdrawalRequest,
+    DepositRequest,
+    OperationResult,
+    ValidationResult,
+    BalanceInfo,
+    SpendingInfo,
+    BaseEvent,
+    WithdrawalEvent,
+    DepositEvent,
+    YieldEvent,
+    SecurityAlertEvent,
+    NeoBankEvent,
+    NetworkType,
+    SDKOptions,
+    SecurityOptions,
+} from './types';
+
 // Version
 export const VERSION = '1.0.0';
 export const PROGRAM_VERSION = 'BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh';
