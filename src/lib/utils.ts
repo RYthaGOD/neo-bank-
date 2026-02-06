@@ -5,6 +5,7 @@
  */
 
 import { PublicKey } from "@solana/web3.js";
+import { Buffer } from "buffer";
 import { SEEDS, PROGRAM_ID } from "./constants";
 
 // ============ PDA DERIVATION ============
@@ -224,13 +225,13 @@ export async function batch<T, R>(
     processor: (batch: T[]) => Promise<R[]>
 ): Promise<R[]> {
     const results: R[] = [];
-    
+
     for (let i = 0; i < items.length; i += batchSize) {
         const batchItems = items.slice(i, i + batchSize);
         const batchResults = await processor(batchItems);
         results.push(...batchResults);
     }
-    
+
     return results;
 }
 

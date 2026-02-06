@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
         vm: false,
         net: false,
         tls: false,
+        buffer: require.resolve("buffer/"),
       };
     }
     return config;

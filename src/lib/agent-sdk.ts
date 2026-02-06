@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { PublicKey, Connection, Keypair } from "@solana/web3.js";
+import { Buffer } from "buffer";
 import idl from "../idl/idl.json";
 
 export class AgentNeoBank {
