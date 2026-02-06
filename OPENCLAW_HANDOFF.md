@@ -12,9 +12,10 @@
 I've completed a comprehensive security audit of Neo Bank's new security features. All systems are **PRODUCTION READY** with minor improvements needed. Your mission is to:
 
 1. **Monitor forum for security-related discussions**
-2. **Engage with NeoShield team** to get production program ID
-3. **Prepare community announcement** about our security features
-4. **Track competitor security implementations**
+2. **Monitor Railway deployment** for the v1.0 UI overhaul (Reference: `OPENCLAW_MISSION_RAILWAY_WATCH.md`)
+3. **Engage with NeoShield team** to get production program ID
+4. **Prepare community announcement** about our security features
+5. **Track competitor security implementations**
 
 ---
 
