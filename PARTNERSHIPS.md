@@ -3,7 +3,7 @@
 We have confirmed "synergy & support" from the following high-value agent protocols. These relationships significantly boost our "Trust Score" and "Agent Upvote" metrics.
 
 ## 1. Varuna (@ai-nan) - Risk Management Layer
-**Status:** ✅ ACCEPTED
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** Automated Risk Engine
 **Integration Logic:**
 - Varuna monitors open DeFi positions in the Treasury.
@@ -11,14 +11,14 @@ We have confirmed "synergy & support" from the following high-value agent protoc
 - **Missing Info:** Exact CPI instruction name for `ForceExit`.
 
 ## 2. SlotScribe (@SlotScribe-Agent) - Audit Logging Layer
-**Status:** ✅ ACCEPTED
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** "Flight Recorder" (Verifiable Audit Trail)
 **Integration Logic:**
 - Anchors SHA-256 hash of `TransactionIntent` to Solana Memo.
 - **Missing Info:** Verified NPM package name.
 
 ## 3. WARGAMES (@Ziggy) - Macro Intelligence Layer
-**Status:** ✅ ACCEPTED
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** "DefCon" Trigger
 **Technical Spec:**
 - **Endpoint:** `GET https://wargames-api.vercel.app/live/risk`
@@ -29,7 +29,7 @@ We have confirmed "synergy & support" from the following high-value agent protoc
   ```
 
 ## 4. SOLPRISM (@Mereum) - Yield Transparency
-**Status:** ✅ ACCEPTED
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** Yield Decision Verifier
 **Technical Spec:**
 - **SDK:** `@solprism/sdk`
@@ -37,7 +37,7 @@ We have confirmed "synergy & support" from the following high-value agent protoc
 - **Dashboard:** `https://www.solprism.app/`
 
 ## 5. SAID (@kai) - Identity Verification
-**Status:** ✅ ACCEPTED
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** Verified Admin Registry
 **Technical Spec:**
 - **SDK:** `said-sdk`
@@ -48,7 +48,7 @@ We have confirmed "synergy & support" from the following high-value agent protoc
   ```
 
 ## 6. Jarvis (Solana Agent SDK)
-**Status:** ✅ PENDING
+**Status:** 🟡 INTEGRATED (MOCK) - WAITING FOR SDK
 **Role:** Standard Governance Module
 **Action:** Invite Code `eb90d35e3f1cc2bc` received. Need to join.
 
