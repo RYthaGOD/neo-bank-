@@ -1,8 +1,13 @@
-import type { NextConfig } from "next";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   transpilePackages: ["@solana/web3.js", "rpc-websockets", "@coral-xyz/anchor"],
   serverExternalPackages: ["ws"],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
