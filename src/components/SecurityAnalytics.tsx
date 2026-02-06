@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { SecurityEvent } from '@/lib/security-layer';
+import { BarChart3, TrendingUp, Skull, Zap } from 'lucide-react';
 
 interface AnalyticsData {
     hourlyActivity: { hour: number; blocked: number; warned: number; passed: number }[];
@@ -100,103 +101,119 @@ export default function SecurityAnalytics({ events }: { events: SecurityEvent[] 
     );
 
     return (
-        <div className="space-y-6">
-            {/* Hourly Activity Heatmap */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">24-Hour Activity Heatmap</h3>
-                <div className="grid grid-cols-24 gap-1">
-                    {analytics.hourlyActivity.map((data, idx) => {
-                        const total = data.blocked + data.warned + data.passed;
-                        const intensity = total / maxHourlyActivity;
-                        const bgColor =
-                            data.blocked > data.passed ? `rgba(220, 38, 38, ${intensity})` :
-                                data.warned > data.passed ? `rgba(234, 88, 12, ${intensity})` :
-                                    `rgba(22, 163, 74, ${intensity})`;
-
-                        return (
-                            <div
-                                key={idx}
-                                className="aspect-square rounded relative group cursor-pointer"
-                                style={{ backgroundColor: bgColor || '#f3f4f6' }}
-                                title={`${data.hour}:00 - ${total} events`}
-                            >
-                                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {total}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className="flex justify-between mt-2 text-xs text-gray-500">
-                    <span>00:00</span>
-                    <span>12:00</span>
-                    <span>23:00</span>
-                </div>
-            </div>
-
-            {/* Top Blocked Addresses */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">Top Blocked Addresses</h3>
-                {analytics.topBlockedAddresses.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No blocked addresses yet</p>
-                ) : (
-                    <div className="space-y-3">
-                        {analytics.topBlockedAddresses.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                    <div className="text-2xl font-bold text-gray-400">#{idx + 1}</div>
-                                    <div>
-                                        <div className="font-mono text-sm">
-                                            {item.address.slice(0, 16)}...
-                                        </div>
-                                        <div className="text-xs text-gray-500">
-                                            Blocked {item.count} time{item.count > 1 ? 's' : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-lg font-bold text-red-600">
-                                        {item.avgRisk.toFixed(1)}
-                                    </div>
-                                    <div className="text-xs text-gray-500">Avg Risk</div>
-                                </div>
-                            </div>
-                        ))}
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Hourly Activity Heatmap */}
+                <div className="glass rounded-xl p-6 border-zinc-800">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Zap className="text-emerald-500 w-4 h-4" />
+                        <h3 className="text-xs uppercase tracking-widest font-black text-white">Transmission Pulse</h3>
                     </div>
-                )}
-            </div>
-
-            {/* Risk Score Trend */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">Risk Score Trend (24h)</h3>
-                {analytics.riskTrend.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Not enough data yet</p>
-                ) : (
-                    <div className="h-64 flex items-end gap-2">
-                        {analytics.riskTrend.map((point, idx) => {
-                            const height = (point.avgRisk / 100) * 100;
-                            const color =
-                                point.avgRisk >= 80 ? 'bg-red-500' :
-                                    point.avgRisk >= 50 ? 'bg-orange-500' :
-                                        point.avgRisk >= 20 ? 'bg-yellow-500' :
-                                            'bg-green-500';
+                    <div className="grid grid-cols-12 gap-1.5">
+                        {analytics.hourlyActivity.map((data, idx) => {
+                            const total = data.blocked + data.warned + data.passed;
+                            const intensity = total / maxHourlyActivity;
+                            const bgColor =
+                                data.blocked > data.passed ? `rgba(244, 63, 94, ${0.1 + intensity * 0.9})` :
+                                    data.warned > data.passed ? `rgba(251, 191, 36, ${0.1 + intensity * 0.9})` :
+                                        `rgba(16, 185, 129, ${0.1 + intensity * 0.9})`;
 
                             return (
                                 <div
                                     key={idx}
-                                    className="flex-1 relative group cursor-pointer"
-                                    title={`${new Date(point.timestamp).toLocaleTimeString()}: ${point.avgRisk.toFixed(1)}`}
+                                    className="aspect-square rounded-md relative group cursor-pointer border border-white/5"
+                                    style={{ backgroundColor: total > 0 ? bgColor : 'rgba(255,255,255,0.02)' }}
                                 >
-                                    <div
-                                        className={`${color} rounded-t transition-all hover:opacity-80`}
-                                        style={{ height: `${height}%` }}
-                                    />
-                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                        {point.avgRisk.toFixed(1)}
+                                    <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                                        {total}
                                     </div>
                                 </div>
                             );
                         })}
+                    </div>
+                    <div className="flex justify-between mt-4 text-[9px] uppercase tracking-widest font-black text-zinc-600">
+                        <span>00:00 CYCLE</span>
+                        <span>12:00</span>
+                        <span>23:59</span>
+                    </div>
+                </div>
+
+                {/* Risk Score Trend */}
+                <div className="glass rounded-xl p-6 border-zinc-800">
+                    <div className="flex items-center gap-2 mb-6">
+                        <TrendingUp className="text-emerald-500 w-4 h-4" />
+                        <h3 className="text-xs uppercase tracking-widest font-black text-white">Volatility Vector</h3>
+                    </div>
+                    <div className="h-40 flex items-end gap-1.5">
+                        {analytics.riskTrend.length === 0 ? (
+                            <div className="w-full h-full flex items-center justify-center border border-zinc-800/50 border-dashed rounded-lg">
+                                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">Awaiting telemetry...</p>
+                            </div>
+                        ) : (
+                            analytics.riskTrend.map((point, idx) => {
+                                const height = (point.avgRisk / 100) * 100;
+                                const color =
+                                    point.avgRisk >= 80 ? 'bg-rose-500' :
+                                        point.avgRisk >= 50 ? 'bg-amber-500' :
+                                            point.avgRisk >= 20 ? 'bg-amber-400' :
+                                                'bg-emerald-500';
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="flex-1 relative group cursor-pointer"
+                                    >
+                                        <div
+                                            className={`${color} rounded-t-sm transition-all hover:brightness-125 hover:shadow-[0_0_10px_currentColor] duration-500`}
+                                            style={{ height: `${Math.max(4, height)}%` }}
+                                        />
+                                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black border border-zinc-800 text-[9px] font-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                                            RISK: {point.avgRisk.toFixed(1)}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Top Blocked Addresses */}
+            <div className="glass rounded-xl p-6 border-zinc-800">
+                <div className="flex items-center gap-2 mb-6">
+                    <Skull className="text-rose-500 w-4 h-4" />
+                    <h3 className="text-xs uppercase tracking-widest font-black text-white">Blacklisted Signatures</h3>
+                </div>
+                {analytics.topBlockedAddresses.length === 0 ? (
+                    <div className="py-12 text-center glass bg-black/20 border-zinc-900 rounded-lg">
+                        <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">No malicious signatures detected</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {analytics.topBlockedAddresses.map((item, idx) => (
+                            <div key={idx} className="flex flex-col justify-between p-4 bg-black/40 border border-zinc-800 rounded-xl relative overflow-hidden group">
+                                <div className="absolute -right-4 -top-4 text-rose-500/5 font-black text-6xl group-hover:text-rose-500/10 transition-colors">#{idx + 1}</div>
+                                <div className="space-y-3">
+                                    <div className="font-mono text-[9px] text-zinc-500 group-hover:text-rose-400 transition-colors">
+                                        ID: {item.address.slice(0, 32)}...
+                                    </div>
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <div className="text-2xl font-mono font-black text-rose-500">
+                                                {item.avgRisk.toFixed(0)}
+                                            </div>
+                                            <div className="text-[9px] uppercase tracking-widest font-black text-zinc-600">AVG_THREAT</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-xl font-mono font-black text-white">
+                                                {item.count}
+                                            </div>
+                                            <div className="text-[9px] uppercase tracking-widest font-black text-zinc-600">ATTEMPTS</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

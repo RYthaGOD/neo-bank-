@@ -9,9 +9,8 @@
 
 import { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
 import { AgentNeoBank } from '@/lib/agent-sdk';
-import * as anchor from '@coral-xyz/anchor';
+import { Settings, RotateCcw, Save, ShieldAlert, Cpu, Info } from 'lucide-react';
 
 export default function CircuitBreakerAdmin() {
     const { connection } = useConnection();
@@ -27,23 +26,21 @@ export default function CircuitBreakerAdmin() {
 
     const handleResetCounter = async () => {
         if (!wallet.publicKey) {
-            showMessage('error', 'Please connect your wallet');
+            showMessage('error', 'Authentication Required');
             return;
         }
 
         setLoading(true);
         try {
             const bank = new AgentNeoBank(connection, wallet as any);
-
-            // Call reset_security_counter instruction
             const tx = await (bank as any).program.methods
                 .resetSecurityCounter()
                 .rpc();
 
-            showMessage('success', `Counter reset! TX: ${tx.slice(0, 8)}...`);
+            showMessage('success', `COUNTER RESET: ${tx.slice(0, 8)}...`);
         } catch (error: any) {
             console.error('Reset failed:', error);
-            showMessage('error', error.message || 'Failed to reset counter');
+            showMessage('error', error.message || 'PROTOCOL_FAILURE');
         } finally {
             setLoading(false);
         }
@@ -51,130 +48,140 @@ export default function CircuitBreakerAdmin() {
 
     const handleUpdateThreshold = async () => {
         if (!wallet.publicKey) {
-            showMessage('error', 'Please connect your wallet');
+            showMessage('error', 'Authentication Required');
             return;
         }
 
         if (threshold < 0 || threshold > 1000) {
-            showMessage('error', 'Threshold must be between 0 and 1000');
+            showMessage('error', 'OOR: VALUE_UNSUPPORTED');
             return;
         }
 
         setLoading(true);
         try {
             const bank = new AgentNeoBank(connection, wallet as any);
-
-            // Call update_auto_threshold instruction
             const tx = await (bank as any).program.methods
                 .updateAutoThreshold(threshold)
                 .rpc();
 
-            showMessage('success', `Threshold updated to ${threshold}! TX: ${tx.slice(0, 8)}...`);
+            showMessage('success', `THRESHOLD SET: ${threshold}`);
         } catch (error: any) {
             console.error('Update failed:', error);
-            showMessage('error', error.message || 'Failed to update threshold');
+            showMessage('error', error.message || 'PROTOCOL_FAILURE');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-            <div className="border-b pb-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                    ⚙️ Circuit Breaker Admin
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                    Manage auto-pause settings and reset suspicious activity counter
+        <div className="glass rounded-xl border-zinc-800 p-8 space-y-8 relative overflow-hidden group">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors duration-1000"></div>
+
+            <div className="border-b border-zinc-800/50 pb-6">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-emerald-500/10 rounded-lg">
+                        <Settings className="text-emerald-500 w-5 h-5" />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-tighter text-white font-mono">
+                        Admin <span className="text-emerald-500">Node</span> Control
+                    </h2>
+                </div>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+                    Autonomous Circuit Breaker Protocol Management
                 </p>
             </div>
 
             {/* Status Message */}
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === 'success'
-                    ? 'bg-green-50 text-green-800 border border-green-200'
-                    : 'bg-red-50 text-red-800 border border-red-200'
+                <div className={`p-4 rounded-lg font-mono text-xs border animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
                     }`}>
-                    {message.text}
+                    <span className="font-black mr-2">[{message.type === 'success' ? 'OK' : 'FAIL'}]</span> {message.text}
                 </div>
             )}
 
-            {/* Reset Counter */}
-            <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Reset Suspicious Activity Counter</h3>
-                <p className="text-sm text-gray-600">
-                    Clears the suspicious activity count back to zero. Use this after investigating
-                    and resolving security incidents.
-                </p>
-                <button
-                    onClick={handleResetCounter}
-                    disabled={loading || !wallet.publicKey}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                >
-                    {loading ? 'Resetting...' : '🔄 Reset Counter'}
-                </button>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Reset Counter */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <RotateCcw className="text-zinc-600 w-4 h-4" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Threat Reset</h3>
+                    </div>
+                    <p className="text-[11px] text-zinc-600 leading-relaxed uppercase font-medium">
+                        Clear local suspicious activity logs and restore agent operational status after investigation.
+                    </p>
+                    <button
+                        onClick={handleResetCounter}
+                        disabled={loading || !wallet.publicKey}
+                        className="w-full py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-lg font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                    >
+                        {loading ? 'EXECUTING...' : 'RESET_SECURITY_STATE'}
+                    </button>
+                </div>
 
-            <div className="border-t pt-6" />
-
-            {/* Update Threshold */}
-            <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Configure Auto-Pause Threshold</h3>
-                <p className="text-sm text-gray-600">
-                    Set the number of suspicious activities that will trigger automatic pause.
-                    Set to 0 to disable the circuit breaker.
-                </p>
-
-                <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Threshold Value
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            max="1000"
-                            value={threshold}
-                            onChange={(e) => setThreshold(parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter threshold (0-1000)"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            {threshold === 0
-                                ? '⚠️ Circuit breaker will be disabled'
-                                : `Auto-pause after ${threshold} suspicious activities`}
-                        </p>
+                {/* Update Threshold */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <ShieldAlert className="text-emerald-500/50 w-4 h-4" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Sensitivity Level</h3>
                     </div>
 
-                    <div className="pt-6">
-                        <button
-                            onClick={handleUpdateThreshold}
-                            disabled={loading || !wallet.publicKey}
-                            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                        >
-                            {loading ? 'Updating...' : '💾 Update Threshold'}
-                        </button>
+                    <div className="space-y-3">
+                        <div className="bg-black/40 border border-zinc-800 p-1 rounded-lg flex items-center gap-2">
+                            <input
+                                type="number"
+                                min="0"
+                                max="1000"
+                                value={threshold}
+                                onChange={(e) => setThreshold(parseInt(e.target.value) || 0)}
+                                className="flex-1 bg-transparent border-none text-white font-mono font-black py-2 px-3 focus:ring-0 text-lg"
+                                placeholder="0"
+                            />
+                            <button
+                                onClick={handleUpdateThreshold}
+                                disabled={loading || !wallet.publicKey}
+                                className="px-4 py-2.5 bg-emerald-600 text-black rounded-md font-black uppercase text-[10px] tracking-tighter hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed transition-all"
+                            >
+                                {loading ? '...' : <Save className="w-4 h-4" />}
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-600 font-mono italic">
+                            {threshold === 0
+                                ? '!! WARNING: CIRCUIT BREAKER DISABLED !!'
+                                : `AUTO-PAUSE AT ${threshold} ANOMALIES`}
+                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* Recommendations */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">💡 Recommendations</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• <strong>Low Security (50-100):</strong> For testing or low-risk environments</li>
-                    <li>• <strong>Medium Security (10-50):</strong> Balanced protection for most use cases</li>
-                    <li>• <strong>High Security (1-10):</strong> Maximum protection for high-value agents</li>
-                    <li>• <strong>Disabled (0):</strong> Only for development/testing</li>
-                </ul>
+            {/* Recommendations Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                    { title: 'CRITICAL', val: '1-10', desc: 'Max Defense' },
+                    { title: 'STANDARD', val: '10-50', desc: 'Recommended' },
+                    { title: 'DEV_MODE', val: '0', desc: 'No Protection' },
+                ].map((item, i) => (
+                    <div key={i} className="bg-zinc-900/50 border border-zinc-800/50 p-3 rounded-lg flex flex-col items-center justify-center text-center">
+                        <div className="text-[9px] font-black text-zinc-600 tracking-tighter mb-1">{item.title}</div>
+                        <div className="text-sm font-mono font-black text-emerald-500/70">{item.val}</div>
+                    </div>
+                ))}
             </div>
 
-            {/* Wallet Status */}
+            {/* Notification / Auth Check */}
             {!wallet.publicKey && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                    <p className="text-yellow-800">
-                        ⚠️ Please connect your admin wallet to manage circuit breaker settings
-                    </p>
+                <div className="absolute inset-0 z-10 bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center rounded-xl p-8 text-center">
+                    <div className="space-y-4">
+                        <div className="mx-auto w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center">
+                            <Cpu className="text-rose-500 w-6 h-6 animate-pulse" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-black uppercase tracking-tighter">System Locked</h4>
+                            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Admin Signature Required</p>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
