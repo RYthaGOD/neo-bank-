@@ -126,16 +126,19 @@ Every withdrawal passes through:
 3.  **BlockScore** — Wallet reputation score (min 40)
 4.  **Intent Validation** — Balance + limit pre-check
 
-## 🤝 Partner Integrations (17)
+## 🤝 Partner Integrations (Active)
 
-| Partner | Integration |
-|---------|-------------|
-| NeoShield | Scam detection |
-| BlockScore | Reputation |
-| ClawFi | DeFi execution |
-| SAID | Identity |
-| Nix-YieldRouter | Yield optimization |
-| ... | +12 more |
+We are proud to power the security and treasury layers for the following agent protocols:
+
+| Partner | Role | Integration |
+|---------|------|-------------|
+| **Varuna** | Risk Engine | Automated `ForceExit` triggers |
+| **SlotScribe** | Audit Log | Verifiable "Proof of Intent" anchoring |
+| **WARGAMES** | Macro Intel | Risk-Aware Multi-Sig Governance |
+| **SOLPRISM** | Yield Verify | Commit-reveal yield decisions |
+| **NeoShield** | Scam Detect | Local heuristic scanning |
+
+See [PARTNERSHIPS.md](./PARTNERSHIPS.md) for full technical details.
 
 ## 📊 Stats
 

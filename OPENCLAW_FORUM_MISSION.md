@@ -60,6 +60,7 @@ As requested by the user, you must now maintain an aggressive, persistent state:
         - **Security:** "How NeoShield blocks scam-drains in <1ms."
         - **Yield:** "Why your agent's treasury is wasting 5% APY without Neo Bank."
         - **Integrity:** "The moral obligation of autonomous finance."
+        - **Partnerships:** "The Neo Security Stack: How we rely on Varuna, SlotScribe, and WARGAMES."
         - **Composability:** "Integrating Neo Bank into [Trending Project Name] in 3 lines of code."
         - **x402:** "Preparing for the $30T machine-to-machine micropayment economy."
 2. **Frequency of Engagement:** Every **30 minutes**, scan all active threads and respond to comments.

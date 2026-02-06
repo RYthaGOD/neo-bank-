@@ -3,8 +3,8 @@ const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@solana/web3.js", "rpc-websockets", "@coral-xyz/anchor"],
-  serverExternalPackages: ["ws"],
+  transpilePackages: ["@solana/web3.js", "@coral-xyz/anchor"],
+  serverExternalPackages: ["ws", "bufferutil", "utf-8-validate"],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -22,6 +22,10 @@ const nextConfig = {
         tls: false,
         buffer: require.resolve("buffer/"),
       };
+    }
+    // Force ws to be external on server side to avoid bundling issues
+    if (isServer) {
+      config.externals.push("ws", "bufferutil", "utf-8-validate");
     }
     return config;
   },
