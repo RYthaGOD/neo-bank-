@@ -42,7 +42,7 @@
 - Configurable thresholds
 
 ### Integrations
-- AgentShield: Scam detection
+- NeoShield: Scam detection
 - BlockScore: Reputation (min 40)
 - More sources planned
 

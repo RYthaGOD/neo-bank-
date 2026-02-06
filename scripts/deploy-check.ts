@@ -133,7 +133,7 @@ async function runChecks(network: string): Promise<CheckResult[]> {
     results.push({
         name: "Security Layer",
         passed: true,
-        message: "AgentShield + BlockScore configured",
+        message: "NeoShield + BlockScore configured",
     });
 
     // Check 9: Codebase Security Scan (Loop 7)
@@ -142,7 +142,7 @@ async function runChecks(network: string): Promise<CheckResult[]> {
         const scanPassed = await scanCodebase();
 
         results.push({
-            name: "AgentShield Scan",
+            name: "NeoShield Scan",
             passed: scanPassed,
             message: scanPassed ? "Codebase verified safe" : "THREATS DETECTED",
         });
@@ -151,11 +151,11 @@ async function runChecks(network: string): Promise<CheckResult[]> {
         // Fallback: If scanner crashes (e.g. ts-node issues), don't block deployment if we are in "Accelerate" mode
         // Just verify security config is present.
         results.push({
-            name: "AgentShield Scan",
+            name: "NeoShield Scan",
             passed: true, // Fail Open for now to unblock
             message: "Scan script error (Bypassed)",
         });
-        console.warn("⚠️  AgentShield Scan failed to execute cleanly. Proceeding with caution.");
+        console.warn("⚠️  NeoShield Scan failed to execute cleanly. Proceeding with caution.");
     }
 
     return results;

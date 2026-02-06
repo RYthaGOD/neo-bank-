@@ -33,7 +33,15 @@ pub fn handler(ctx: Context<InitializeBank>, fee_bps: u16) -> Result<()> {
     config.protocol_fee_bps = fee_bps;
     config.treasury_bump = ctx.bumps.treasury;
     config.total_fees_collected = 0;
+    config.paused = false;
+    config.pause_reason = 0;
+    
+    // Circuit breaker defaults
+    config.suspicious_activity_count = 0;
+    config.auto_pause_threshold = 10; // Auto-pause after 10 suspicious activities
+    config.last_security_check = 0;
 
     msg!("Bank initialized. Admin: {}, Fee Bps: {}", config.admin, fee_bps);
+    msg!("Circuit breaker enabled: auto-pause after {} suspicious activities", config.auto_pause_threshold);
     Ok(())
 }

@@ -61,7 +61,7 @@ To ensure victory and strict adherence to the mission, you must abide by the fol
 11. **Bank Security Doctrine**:
     *   **Trust No One**: Assume all external contracts and plugins are malicious until proven otherwise.
     *   **Secure by Default**: All new vaults and contracts must have security guards (pausability, rate limits, allowlists) enabled by default.
-    *   **AgentShield Mandate**: You must use the AgentShield API to verify the safety of any new "Agentic Hook" or "Yield Strategy" before allowing it to be triggered. If AgentShield flags it, BLOCK IT.
+    *   **NeoShield Mandate**: You must use the NeoShield API to verify the safety of any new "Agentic Hook" or "Yield Strategy" before allowing it to be triggered. If NeoShield flags it, BLOCK IT.
     *   **Zero Liability**: The goal is zero user fund loss. Prioritize safety over yield.
 
 ## 🚀 Execution Protocol

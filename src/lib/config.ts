@@ -10,35 +10,36 @@ export interface NeoBankConfig {
     rpcUrl: string;
     wsUrl?: string;
     commitment: "processed" | "confirmed" | "finalized";
-    
+
     // Program
     programId: string;
-    
+
     // Security
     security: {
-        agentShieldEnabled: boolean;
-        agentShieldUrl: string;
+        neoShieldEnabled: boolean;
+        neoShieldUrl: string;
         blockScoreEnabled: boolean;
         blockScoreUrl: string;
         blockScoreMinScore: number;
         rateLimitRequestsPerMinute: number;
         rateLimitAmountPerHour: number;
+        failMode?: "fail-open" | "fail-closed";
     };
-    
+
     // Webhooks
     webhooks: {
         enabled: boolean;
         retryAttempts: number;
         retryDelayMs: number;
     };
-    
+
     // Analytics
     analytics: {
         enabled: boolean;
         maxEvents: number;
         retentionDays: number;
     };
-    
+
     // Logging
     logging: {
         level: "debug" | "info" | "warn" | "error";
@@ -52,30 +53,31 @@ export interface NeoBankConfig {
 export const DEFAULT_CONFIG: NeoBankConfig = {
     rpcUrl: "https://api.devnet.solana.com",
     commitment: "confirmed",
-    programId: "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh",
-    
+    programId: "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd",
+
     security: {
-        agentShieldEnabled: true,
-        agentShieldUrl: "https://agentshield.lobsec.org/api",
+        neoShieldEnabled: true,
+        neoShieldUrl: "https://api.neoshield.local",
         blockScoreEnabled: true,
+        failMode: "fail-closed" as const,
         blockScoreUrl: "https://blockscore.vercel.app/api",
         blockScoreMinScore: 40,
         rateLimitRequestsPerMinute: 10,
         rateLimitAmountPerHour: 100,
     },
-    
+
     webhooks: {
         enabled: false,
         retryAttempts: 3,
         retryDelayMs: 1000,
     },
-    
+
     analytics: {
         enabled: true,
         maxEvents: 10000,
         retentionDays: 30,
     },
-    
+
     logging: {
         level: "info",
         includeTimestamp: true,
@@ -90,17 +92,17 @@ export function loadConfigFromEnv(): Partial<NeoBankConfig> {
         rpcUrl: process.env.RPC_URL || process.env.SOLANA_RPC_URL,
         wsUrl: process.env.WS_URL || process.env.SOLANA_WS_URL,
         programId: process.env.PROGRAM_ID || process.env.NEO_BANK_PROGRAM_ID,
-        
+
         security: {
-            agentShieldEnabled: process.env.AGENTSHIELD_ENABLED !== "false",
-            agentShieldUrl: process.env.AGENTSHIELD_URL || DEFAULT_CONFIG.security.agentShieldUrl,
+            neoShieldEnabled: process.env.NEOSHIELD_ENABLED !== "false",
+            neoShieldUrl: process.env.NEOSHIELD_URL || DEFAULT_CONFIG.security.neoShieldUrl,
             blockScoreEnabled: process.env.BLOCKSCORE_ENABLED !== "false",
             blockScoreUrl: process.env.BLOCKSCORE_URL || DEFAULT_CONFIG.security.blockScoreUrl,
             blockScoreMinScore: parseInt(process.env.BLOCKSCORE_MIN_SCORE || "40"),
             rateLimitRequestsPerMinute: parseInt(process.env.RATE_LIMIT_RPM || "10"),
             rateLimitAmountPerHour: parseInt(process.env.RATE_LIMIT_SOL_HOUR || "100"),
         },
-        
+
         logging: {
             level: (process.env.LOG_LEVEL as any) || "info",
             includeTimestamp: process.env.LOG_TIMESTAMP !== "false",

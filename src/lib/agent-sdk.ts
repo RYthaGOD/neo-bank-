@@ -170,7 +170,7 @@ export class AgentNeoBank {
             // If we get here, intent is valid
             const agentData = await this.getAgentData(agentOwner);
             const vaultBalance = await this.provider.connection.getBalance(vaultPda);
-            
+
             return {
                 valid: true,
                 remainingLimit: Number(agentData.spendingLimit) - Number(agentData.currentPeriodSpend),
@@ -182,13 +182,13 @@ export class AgentNeoBank {
             // Parse the error to determine the reason
             const errorMessage = error.message || error.toString();
             let reason = "unknown_error";
-            
+
             if (errorMessage.includes("IntentWouldExceedLimit") || errorMessage.includes("spending_limit")) {
                 reason = "spending_limit_exceeded";
             } else if (errorMessage.includes("IntentInsufficientFunds") || errorMessage.includes("insufficient")) {
                 reason = "insufficient_funds";
             }
-            
+
             return {
                 valid: false,
                 reason,
@@ -208,16 +208,16 @@ export class AgentNeoBank {
         const agentData = await this.getAgentData(agentOwner);
         const clock = await this.provider.connection.getSlot();
         const blockTime = await this.provider.connection.getBlockTime(clock) || Math.floor(Date.now() / 1000);
-        
+
         const periodStart = Number(agentData.currentPeriodStart);
         const periodDuration = Number(agentData.periodDuration);
         const periodEnd = periodStart + periodDuration;
         const isPeriodActive = blockTime < periodEnd;
-        
+
         return {
             spendingLimit: Number(agentData.spendingLimit),
             currentPeriodSpend: isPeriodActive ? Number(agentData.currentPeriodSpend) : 0,
-            remainingBudget: isPeriodActive 
+            remainingBudget: isPeriodActive
                 ? Number(agentData.spendingLimit) - Number(agentData.currentPeriodSpend)
                 : Number(agentData.spendingLimit),
             periodResetsAt: isPeriodActive ? periodEnd : blockTime + periodDuration,
@@ -326,7 +326,7 @@ export class AgentNeoBank {
             // Fetch strategy data for detailed status
             const strategyData = await (this.program.account as any).yieldStrategy.fetch(strategyPda);
             const agentData = await this.getAgentData(agentOwner);
-            
+
             return {
                 enabled: strategyData.enabled,
                 protocol: strategyData.protocol,
@@ -433,7 +433,7 @@ export class AgentNeoBank {
             this.getAgentData(owner),
             this.provider.connection.getBalance(vaultPda),
             this.getSpendingStatus(owner),
-            this.getHookStatus(owner),
+            this.checkHookStatus(owner),
             this.getPauseStatus(),
         ]);
 
@@ -545,7 +545,7 @@ export interface SpendingStatus {
 /**
  * Conditions that can trigger an agentic hook
  */
-export type HookCondition = 
+export type HookCondition =
     | { balanceAbove: { threshold: anchor.BN } }
     | { timeElapsed: { interval: anchor.BN } }
     | { yieldAbove: { threshold: anchor.BN } };
@@ -553,7 +553,7 @@ export type HookCondition =
 /**
  * Target DeFi protocols for yield deployment
  */
-export type YieldProtocol = 
+export type YieldProtocol =
     | { internal: {} }
     | { jupiter: {} }
     | { meteora: {} }
@@ -807,7 +807,7 @@ export class GovernanceHelper {
             );
 
             const data = await (this.program.account as any).treasuryProposal.fetch(proposalPda);
-            
+
             return {
                 id: Number(data.id),
                 proposer: data.proposer.toBase58(),
@@ -815,10 +815,10 @@ export class GovernanceHelper {
                 amount: Number(data.amount) / 1e9,
                 memo: data.memo,
                 status: data.status.pending ? ProposalStatus.Pending :
-                        data.status.approved ? ProposalStatus.Approved :
+                    data.status.approved ? ProposalStatus.Approved :
                         data.status.rejected ? ProposalStatus.Rejected :
-                        data.status.executed ? ProposalStatus.Executed :
-                        ProposalStatus.Expired,
+                            data.status.executed ? ProposalStatus.Executed :
+                                ProposalStatus.Expired,
                 votesFor: data.votesFor,
                 votesAgainst: data.votesAgainst,
                 createdAt: new Date(Number(data.createdAt) * 1000),
@@ -883,7 +883,7 @@ export class GovernanceHelper {
     async isAdmin(wallet: PublicKey | string): Promise<boolean> {
         const info = await this.getGovernanceInfo();
         if (!info) return false;
-        
+
         const address = typeof wallet === "string" ? wallet : wallet.toBase58();
         return info.admins.includes(address);
     }

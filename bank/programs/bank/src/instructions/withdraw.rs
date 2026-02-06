@@ -56,6 +56,52 @@ pub fn handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp;
 
+    // ============ SECURITY LAYER: NeoShield Validation ============
+    // Validate destination address before processing withdrawal
+    let validation_result = crate::instructions::security_cpi::validate_destination(
+        ctx.accounts.destination.key,
+    )?;
+    
+    // Log security check for audit trail
+    crate::instructions::security_cpi::log_security_check(
+        ctx.accounts.destination.key,
+        &validation_result,
+    );
+    
+    // Block transaction if destination is flagged
+    if crate::instructions::security_cpi::should_block_transaction(&validation_result) {
+        msg!("🚨 SECURITY ALERT: Withdrawal blocked by NeoShield");
+        msg!("   Destination: {}", ctx.accounts.destination.key);
+        msg!("   Risk Score: {}/100", validation_result.risk_score);
+        msg!("   Reason Code: {}", validation_result.reason_code);
+        
+        // Increment suspicious activity counter for circuit breaker
+        let config = &mut ctx.accounts.config;
+        config.suspicious_activity_count = config.suspicious_activity_count.saturating_add(1);
+        
+        return err!(BankError::SuspiciousDestination);
+    }
+    
+    msg!("✅ NeoShield: Destination validated (risk: {})", validation_result.risk_score);
+    
+    // ============ CIRCUIT BREAKER: Auto-Pause Check ============
+    let config = &mut ctx.accounts.config;
+    
+    // Check if auto-pause threshold is reached
+    if config.auto_pause_threshold > 0 && config.suspicious_activity_count >= config.auto_pause_threshold {
+        config.paused = true;
+        config.pause_reason = 1; // Security
+        
+        msg!("🚨 CIRCUIT BREAKER TRIGGERED: Bank auto-paused");
+        msg!("   Suspicious activity count: {}", config.suspicious_activity_count);
+        msg!("   Threshold: {}", config.auto_pause_threshold);
+        msg!("   Admin must manually unpause");
+        
+        return err!(BankError::BankPaused);
+    }
+    // ============ END CIRCUIT BREAKER ============
+    // ============ END SECURITY LAYER ============
+
     // reset period if needed
     if current_time > agent.current_period_start + agent.period_duration {
         agent.current_period_start = current_time;

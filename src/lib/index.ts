@@ -23,7 +23,7 @@
  */
 
 // Core SDK
-export { 
+export {
     AgentNeoBank,
     SecureAgentBank,
     GovernanceHelper,
@@ -49,7 +49,7 @@ export {
     SecurityMonitor,
     RateLimiter,
     globalRateLimiter,
-    batchValidateDestinations,
+    batchValidate,
     DEFAULT_SECURITY_CONFIG,
     DEFAULT_RATE_LIMIT,
 } from './security-layer';
@@ -214,11 +214,13 @@ export type {
 
 // Version
 export const VERSION = '1.0.0';
-export const PROGRAM_VERSION = 'BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh';
+export const PROGRAM_VERSION = 'FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd';
 
 /**
  * Quick start helper
+ * TODO: Implement config module
  */
+/*
 export function quickStart(network: 'devnet' | 'mainnet' | 'localnet' = 'devnet') {
     config.useNetwork(network);
     console.log(`🏦 Neo Bank SDK v${VERSION}`);
@@ -226,3 +228,4 @@ export function quickStart(network: 'devnet' | 'mainnet' | 'localnet' = 'devnet'
     console.log(`   Program: ${PROGRAM_VERSION.slice(0, 8)}...`);
     console.log(`   Ready to initialize AgentNeoBank`);
 }
+*/

@@ -41,4 +41,11 @@ pub enum BankError {
     Unauthorized,
     #[msg("Bank is paused for emergency. Check pause_reason.")]
     BankPaused,
+    // Security errors
+    #[msg("Destination address flagged as suspicious by NeoShield.")]
+    SuspiciousDestination,
+    #[msg("NeoShield security check failed.")]
+    NeoShieldCheckFailed,
+    #[msg("Wallet reputation score too low (BlockScore).")]
+    LowReputationScore,
 }

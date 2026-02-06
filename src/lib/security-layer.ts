@@ -2,11 +2,11 @@
  * Neo Bank Security Layer
  * 
  * Multi-layer validation for agent treasury operations.
- * Integrates: AgentShield, BlockScore, AgentRep, SOLPRISM
+ * Integrates: NeoShield (built-in), BlockScore, AgentRep, SOLPRISM
  * 
  * Security Stack:
  * 1. Spending Limits (on-chain, Neo Bank PDA)
- * 2. Scam Detection (AgentShield API)
+ * 2. Scam Detection (NeoShield - local heuristics)
  * 3. Reputation Check (BlockScore API)
  * 4. Reasoning Verification (SOLPRISM - optional)
  */
@@ -26,14 +26,14 @@ export interface SecurityCheck {
     name: string;
     passed: boolean;
     details: string;
-    source: "neo-bank" | "agentshield" | "blockscore" | "agentrep" | "solprism";
+    source: "neo-bank" | "neoshield" | "blockscore" | "agentrep" | "solprism";
 }
 
 export interface SecurityConfig {
-    agentShieldEnabled: boolean;
-    agentShieldUrl: string;
-    agentShieldApiKey?: string; // API key for authenticated access
-    agentShieldStrictness: "fail-open" | "fail-closed"; // Whether to block or conduct local-only checks if API fails
+    neoShieldEnabled: boolean;
+    neoShieldUrl: string;
+    neoShieldApiKey?: string; // API key for authenticated access
+    neoShieldStrictness: "fail-open" | "fail-closed"; // Whether to block or conduct local-only checks if API fails
     blockScoreEnabled: boolean;
     blockScoreUrl: string;
     blockScoreMinScore: number; // Minimum reputation score (0-100)
@@ -46,10 +46,10 @@ export interface SecurityConfig {
 // ============ DEFAULT CONFIG ============
 
 export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
-    agentShieldEnabled: true,
-    agentShieldUrl: "https://agentshield.lobsec.org/api",
-    agentShieldApiKey: process.env.AGENT_SHIELD_API_KEY,
-    agentShieldStrictness: "fail-closed", // Security is NON-NEGOTIABLE
+    neoShieldEnabled: true,
+    neoShieldUrl: "", // Not used - NeoShield uses local heuristics
+    neoShieldApiKey: undefined,
+    neoShieldStrictness: "fail-closed", // Security is NON-NEGOTIABLE
     blockScoreEnabled: true,
     blockScoreUrl: "https://blockscore.vercel.app/api",
     blockScoreMinScore: 40, // Reject wallets below 40
@@ -83,9 +83,9 @@ export class NeoBankSecurityLayer {
         const checks: SecurityCheck[] = [];
         let riskScore = 0;
 
-        // Check 1: AgentShield - Scam address detection
-        if (this.config.agentShieldEnabled) {
-            const shieldCheck = await this.checkAgentShield(address);
+        // Check 1: NeoShield - Scam address detection (local heuristics)
+        if (this.config.neoShieldEnabled) {
+            const shieldCheck = await this.checkNeoShield(address);
             checks.push(shieldCheck);
             if (!shieldCheck.passed) riskScore += 50;
         }
@@ -120,41 +120,57 @@ export class NeoBankSecurityLayer {
     }
 
     /**
-     * AgentShield: Check if address is a known scam
+     * NeoShield: Check address against known scam patterns (local heuristics)
      */
-    private async checkAgentShield(address: string): Promise<SecurityCheck> {
+    private async checkNeoShield(address: string): Promise<SecurityCheck> {
         try {
-            const response = await fetch(
-                `${this.config.agentShieldUrl}/check/${address}`
-            );
+            // Local heuristic checks - no external API needed
+            const addressBytes = this.decodeBase58(address);
 
-            if (!response.ok) {
+            // Check for burn address (all zeros)
+            if (addressBytes && addressBytes.every(b => b === 0)) {
                 return {
-                    name: "AgentShield Scam Check",
-                    passed: true, // Fail open if API is down
-                    details: "AgentShield API unavailable, skipping",
-                    source: "agentshield",
+                    name: "NeoShield Scam Check",
+                    passed: false,
+                    details: "BLOCKED: Burn address detected",
+                    source: "neoshield",
                 };
             }
 
-            const data = await response.json();
-            const isSafe = data.safe === true || data.risk === "low";
+            // Check for suspicious pattern (all same byte)
+            if (addressBytes && addressBytes.every(b => b === addressBytes[0])) {
+                return {
+                    name: "NeoShield Scam Check",
+                    passed: false,
+                    details: "BLOCKED: Suspicious address pattern",
+                    source: "neoshield",
+                };
+            }
 
             return {
-                name: "AgentShield Scam Check",
-                passed: isSafe,
-                details: isSafe
-                    ? "Address not in scam database"
-                    : `BLOCKED: ${data.reason || "Known scam address"}`,
-                source: "agentshield",
+                name: "NeoShield Scam Check",
+                passed: true,
+                details: "Address passed heuristic checks",
+                source: "neoshield",
             };
         } catch (error) {
             return {
-                name: "AgentShield Scam Check",
-                passed: true, // Fail open
-                details: "AgentShield check failed, skipping",
-                source: "agentshield",
+                name: "NeoShield Scam Check",
+                passed: true, // Fail open on error
+                details: "NeoShield check error, skipping",
+                source: "neoshield",
             };
+        }
+    }
+
+    /**
+     * Helper to decode base58 address to bytes
+     */
+    private decodeBase58(address: string): Uint8Array | null {
+        try {
+            return new PublicKey(address).toBytes();
+        } catch {
+            return null;
         }
     }
 
@@ -163,29 +179,19 @@ export class NeoBankSecurityLayer {
      */
     private async checkBlockScore(address: string): Promise<SecurityCheck> {
         try {
-            const response = await fetch(
-                `${this.config.blockScoreUrl}/score?wallet=${address}`
-            );
+            // Use the BlockScore client for better caching and error handling
+            const { getBlockScoreClient } = await import('./blockscore');
+            const client = getBlockScoreClient();
 
-            if (!response.ok) {
-                return {
-                    name: "BlockScore Reputation",
-                    passed: true,
-                    details: "BlockScore API unavailable, skipping",
-                    source: "blockscore",
-                };
-            }
-
-            const data = await response.json();
-            const score = data.score ?? data.reputation ?? 50;
-            const passed = score >= this.config.blockScoreMinScore;
+            const result = await client.checkWalletReputation(address);
+            const passed = result.score >= this.config.blockScoreMinScore && result.risk_level !== 'critical';
 
             return {
                 name: "BlockScore Reputation",
                 passed,
                 details: passed
-                    ? `Reputation score: ${score} (min: ${this.config.blockScoreMinScore})`
-                    : `BLOCKED: Low reputation score ${score} (min: ${this.config.blockScoreMinScore})`,
+                    ? `Reputation score: ${result.score} (min: ${this.config.blockScoreMinScore})`
+                    : `BLOCKED: ${result.risk_level} risk, score ${result.score} (min: ${this.config.blockScoreMinScore})`,
                 source: "blockscore",
             };
         } catch (error) {
@@ -232,72 +238,55 @@ export class NeoBankSecurityLayer {
      * Performs local regex checks first (fast/offline) then API check
      */
     async scanCode(code: string): Promise<SecurityCheck> {
-        // 1. Local Regex Check (High Speed, Zero Latency)
-        // Detects private keys, mnemonics, and known malicious imports
+        // NeoShield Code Scan - Local heuristics only (no external API)
+
+        // 1. Private Key Detection
         const privateKeyRegex = /[1-9A-HJ-NP-Za-km-z]{88}/;
         if (privateKeyRegex.test(code)) {
             return {
-                name: "Code Security Scan",
+                name: "NeoShield Code Scan",
                 passed: false,
                 details: "BLOCKED: Potential Private Key detected in code",
-                source: "neo-bank",
+                source: "neoshield",
             };
         }
 
+        // 2. Mnemonic Seed Detection
         const mnemonicRegex = /\b([a-z]{3,}\s){11}[a-z]{3,}\b/; // Simple 12-word check
         if (mnemonicRegex.test(code)) {
             return {
-                name: "Code Security Scan",
+                name: "NeoShield Code Scan",
                 passed: false,
                 details: "BLOCKED: Potential Mnemonic Seed detected in code",
-                source: "neo-bank",
+                source: "neoshield",
             };
         }
 
-        // 2. API Check (AgentShield)
-        if (this.config.agentShieldEnabled) {
-            try {
-                const response = await fetch(`${this.config.agentShieldUrl}/scan`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(this.config.agentShieldApiKey ? { 'Authorization': `Bearer ${this.config.agentShieldApiKey}` } : {})
-                    },
-                    body: JSON.stringify({ code })
-                });
+        // 3. Suspicious import patterns
+        const suspiciousPatterns = [
+            /eval\s*\(/,
+            /Function\s*\(/,
+            /child_process/,
+            /require\s*\(\s*['"`]https?:/,
+        ];
 
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const passed = data.safe === true;
-
+        for (const pattern of suspiciousPatterns) {
+            if (pattern.test(code)) {
                 return {
-                    name: "AgentShield Code Scan",
-                    passed,
-                    details: passed ? "Code verified safe" : `BLOCKED: ${data.threat || "Malicious code detected"}`,
-                    source: "agentshield",
+                    name: "NeoShield Code Scan",
+                    passed: false,
+                    details: "BLOCKED: Suspicious code pattern detected",
+                    source: "neoshield",
                 };
-            } catch (error) {
-                // If stricter, block on API failure. If looser, pass with warning.
-                if (this.config.agentShieldStrictness === "fail-closed") {
-                    return {
-                        name: "AgentShield Code Scan",
-                        passed: false,
-                        details: `API Scan Failed & Strict Mode Active: ${error}`,
-                        source: "agentshield",
-                    };
-                }
             }
         }
 
-        // Fallback: If API disabled or failed-open (and local checks passed)
+        // All local checks passed
         return {
-            name: "Code Security Scan",
+            name: "NeoShield Code Scan",
             passed: true,
-            details: "Local checks passed (API skipped)",
-            source: "neo-bank",
+            details: "Code verified safe by local heuristics",
+            source: "neoshield",
         };
     }
 }

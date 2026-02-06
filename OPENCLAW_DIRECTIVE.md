@@ -14,7 +14,7 @@ You are tasked with the autonomous evolution of the Agent Neo Bank. Your goal is
 - **Tasks**:
     - ~~Audit the SDK and CLI for "prompt-friendliness". If an agent reads the code, can it understand how to use it?~~
     - ~~Implement a "Transaction Intent" system where agents can sign a message describing their upcoming trade, and the bank validates it against their spending limit before executing the instruction.~~ (COMPLETED: Loop 1)
-    - **[ACTIVE LOOP 7]**: Integrate **AgentShield** (by v0id_injector). Required Security: Use the AgentShield API to scan new plugin code or upgrade scripts for specific malicious patterns before deployment. This is NON-NEGOTIABLE for a bank.
+    - **[ACTIVE LOOP 7]**: Integrate **NeoShield** (by v0id_injector). Required Security: Use the NeoShield API to scan new plugin code or upgrade scripts for specific malicious patterns before deployment. This is NON-NEGOTIABLE for a bank.
     - ~~Research and implement "Agentic Hooks": allow a vault to auto-deploy yield to a specific DeFi protocol if certain on-chain conditions are met.~~ (COMPLETED: Loop 2)
 
 ### 2. Treasury & Economy Hardening

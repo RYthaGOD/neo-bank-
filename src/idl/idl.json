@@ -1,5 +1,5 @@
 {
-  "address": "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh",
+  "address": "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd",
   "metadata": {
     "name": "bank",
     "version": "0.1.0",
@@ -1068,6 +1068,93 @@
       ]
     },
     {
+      "name": "reset_security_counter",
+      "docs": [
+        "Reset suspicious activity counter (admin only)."
+      ],
+      "discriminator": [
+        104,
+        238,
+        106,
+        148,
+        82,
+        82,
+        123,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "toggle_pause",
+      "docs": [
+        "Toggle emergency pause (admin only).",
+        "When paused, withdrawals and yield deployments are blocked.",
+        "Reason codes: 0=none, 1=security, 2=maintenance, 3=upgrade"
+      ],
+      "discriminator": [
+        238,
+        237,
+        206,
+        27,
+        255,
+        95,
+        123,
+        229
+      ],
+      "accounts": [
+        {
+          "name": "bank_config",
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "bank_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        },
+        {
+          "name": "reason",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "trigger_yield_hook",
       "docs": [
         "Trigger a yield hook (permissionless crank).",
@@ -1168,6 +1255,58 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "update_auto_threshold",
+      "docs": [
+        "Update auto-pause threshold (admin only).",
+        "Set to 0 to disable circuit breaker."
+      ],
+      "discriminator": [
+        184,
+        42,
+        134,
+        192,
+        14,
+        162,
+        248,
+        145
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "new_threshold",
+          "type": "u32"
+        }
+      ]
     },
     {
       "name": "validate_intent",
@@ -1705,6 +1844,31 @@
       "code": 6016,
       "name": "InvalidProtocol",
       "msg": "Invalid protocol for this operation."
+    },
+    {
+      "code": 6017,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: only admin can perform this action."
+    },
+    {
+      "code": 6018,
+      "name": "BankPaused",
+      "msg": "Bank is paused for emergency. Check pause_reason."
+    },
+    {
+      "code": 6019,
+      "name": "SuspiciousDestination",
+      "msg": "Destination address flagged as suspicious by NeoShield."
+    },
+    {
+      "code": 6020,
+      "name": "NeoShieldCheckFailed",
+      "msg": "NeoShield security check failed."
+    },
+    {
+      "code": 6021,
+      "name": "LowReputationScore",
+      "msg": "Wallet reputation score too low (BlockScore)."
     }
   ],
   "types": [
@@ -1812,6 +1976,26 @@
           {
             "name": "total_fees_collected",
             "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "pause_reason",
+            "type": "u8"
+          },
+          {
+            "name": "suspicious_activity_count",
+            "type": "u32"
+          },
+          {
+            "name": "auto_pause_threshold",
+            "type": "u32"
+          },
+          {
+            "name": "last_security_check",
+            "type": "i64"
           }
         ]
       }

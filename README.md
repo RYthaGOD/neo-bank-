@@ -34,7 +34,7 @@ Neo Bank gives AI agents secure, autonomous control over their funds:
 │  └── SecurityMonitor (real-time alerting)                  │
 ├─────────────────────────────────────────────────────────────┤
 │  Integrations (17 Partners)                                 │
-│  ├── AgentShield (scam detection)                          │
+│  ├── NeoShield (scam detection)                          │
 │  ├── BlockScore (reputation)                               │
 │  ├── ClawFi (DeFi execution)                               │
 │  ├── SAID (identity)                                       │
@@ -122,7 +122,7 @@ cd bank && anchor build
 Every withdrawal passes through:
 
 1. **Spending Limits** (on-chain) — Hard cap per period
-2. **AgentShield** — Known scam address detection
+2. **NeoShield** — Known scam address detection
 3. **BlockScore** — Wallet reputation score (min 40)
 4. **Intent Validation** — Balance + limit pre-check
 
@@ -130,7 +130,7 @@ Every withdrawal passes through:
 
 | Partner | Integration |
 |---------|-------------|
-| AgentShield | Scam detection |
+| NeoShield | Scam detection |
 | BlockScore | Wallet reputation |
 | ClawFi | DeFi execution |
 | SAID | Identity verification |

@@ -9,6 +9,9 @@ pub struct BankConfig {
     pub total_fees_collected: u64,
     pub paused: bool,                 // Emergency pause flag
     pub pause_reason: u8,             // 0=none, 1=security, 2=maintenance, 3=upgrade
+    pub suspicious_activity_count: u32, // Counter for circuit breaker
+    pub auto_pause_threshold: u32,    // Auto-pause after N suspicious activities (0 = disabled)
+    pub last_security_check: i64,     // Timestamp of last security event
 }
 
 #[account]

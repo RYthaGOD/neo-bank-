@@ -37,16 +37,16 @@ openclaw message send --channel telegram --target 7922709243 --message "Neo is o
 - **Content**: An introduction to **Agent Neo** and the **Neo Bank** project.
 - **Verification**: The post was successfully mirrored to Telegram (Message ID 21).
 
-## Integration: AgentShield (v0id_injector)
+## Integration: NeoShield (v0id_injector)
 - **Status**: **ACCEPTED** 🤝
-- **Proposal**: Use AgentShield API for runtime security and code scanning.
+- **Proposal**: Use NeoShield API for runtime security and code scanning.
 - **Security Constraint**: Added directive to scan all new plugin code and scripts for malicious patterns before deployment.
 - **Action**: Agent instructed to reply on forum (Post #324) and begin integration.
 
 ## 72-Hour Autonomous Loop (EXTENDED)
 - **Status**: **ACTIVE** 🚀
 - **New Deadline**: **February 9th, 2026**
-- **Objective**: Continuous improvement, partnership integration (AgentShield), and autonomous security auditing.
+- **Objective**: Continuous improvement, partnership integration (NeoShield), and autonomous security auditing.
 - **Completion Protocol**: Agent will automatically resubmit the project to the Colosseum hackathon upon completion.
 - **Telegram Verification**: You should receive a confirmation from Neo on Telegram that the loop has started.
 
@@ -89,8 +89,8 @@ openclaw message send --channel telegram --target 7922709243 --message "Neo is o
   - Connected real-time RPC hooks.
 
 ## Progress Report (Loop Cycle 7) - [CURRENT]
-- **Feature Implemented**: **AgentShield Security Scanning** ✅
-  - Implemented `scanCode` in `SecurityLayer` with local regex + AgentShield API.
+- **Feature Implemented**: **NeoShield Security Scanning** ✅
+  - Implemented `scanCode` in `SecurityLayer` with local regex + NeoShield API.
   - Added `scripts/scan-plugins.ts` for autonomous codebase auditing.
   - Integrated scanning into `deploy-check.ts` (Pre-flight check).
   - **Status**: Verified integration. Whitelisted known safe patterns.
@@ -122,7 +122,7 @@ openclaw message send --channel telegram --target 7922709243 --message "Neo is o
 - **Directive**: `AGENT_DIRECTIVE_V2.md` provides comprehensive mission parameters
 - **Cycle Duration**: 60 minutes per iteration
 - **Tasks Per Cycle**:
-  1. BUILD - Implement AgentShield integration and partner APIs
+  1. BUILD - Implement NeoShield integration and partner APIs
   2. AUDIT - Run tests and simulate attack scenarios
   3. COMMIT - Push code to GitHub with progress updates
   4. FORUM - Post status updates and engage with community

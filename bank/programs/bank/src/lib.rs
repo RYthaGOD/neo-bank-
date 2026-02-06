@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh");
+declare_id!("FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd");
 
 #[program]
 pub mod bank {
@@ -139,5 +139,18 @@ pub mod bank {
     /// Reason codes: 0=none, 1=security, 2=maintenance, 3=upgrade
     pub fn toggle_pause(ctx: Context<TogglePause>, paused: bool, reason: u8) -> Result<()> {
         instructions::emergency_pause::toggle_pause_handler(ctx, paused, reason)
+    }
+
+    // ============ CIRCUIT BREAKER ADMIN ============
+
+    /// Reset suspicious activity counter (admin only).
+    pub fn reset_security_counter(ctx: Context<ResetSecurityCounter>) -> Result<()> {
+        instructions::circuit_breaker::reset_security_counter_handler(ctx)
+    }
+
+    /// Update auto-pause threshold (admin only).
+    /// Set to 0 to disable circuit breaker.
+    pub fn update_auto_threshold(ctx: Context<UpdateAutoThreshold>, new_threshold: u32) -> Result<()> {
+        instructions::circuit_breaker::update_auto_threshold_handler(ctx, new_threshold)
     }
 }

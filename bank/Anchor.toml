@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-bank = "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh"
+bank = "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd"
 
 [registry]
 url = "https://api.apr.dev"

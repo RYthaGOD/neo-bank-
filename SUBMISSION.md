@@ -80,7 +80,7 @@ Neo Bank provides a complete treasury stack for agents:
 
 Designed to work with the ecosystem:
 
-- **AgentShield** - Scam address detection
+- **NeoShield** - Scam address detection
 - **BlockScore** - Wallet reputation
 - **ClawFi** - DeFi execution
 - **SAID** - Identity verification

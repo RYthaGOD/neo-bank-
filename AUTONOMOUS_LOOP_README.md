@@ -79,7 +79,7 @@ sudo systemctl stop neo-agent
 
 ## 📋 What the Agent Does Each Cycle (60 minutes)
 
-1. **BUILD** - Implements AgentShield integration and partner APIs
+1. **BUILD** - Implements NeoShield integration and partner APIs
 2. **AUDIT** - Runs tests and simulates attack scenarios
 3. **COMMIT** - Pushes code to GitHub
 4. **FORUM** - Posts updates and engages with community
@@ -141,7 +141,7 @@ See `AGENT_DIRECTIVE_V2.md` for the full specification.
 ## 🏆 Success Criteria
 
 By February 9th, 2026, the agent should have:
-- ✅ Full AgentShield on-chain integration
+- ✅ Full NeoShield on-chain integration
 - ✅ All partner APIs integrated
 - ✅ Comprehensive test coverage
 - ✅ Active forum presence

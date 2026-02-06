@@ -69,7 +69,7 @@ This is READ-ONLY. It doesn't spend anything. It tells you IF the spend would su
 ### 4. Security Layer
 Before withdrawing, we check:
 1. ✅ Spending limit (on-chain)
-2. ✅ Scam address (AgentShield API)
+2. ✅ Scam address (NeoShield API)
 3. ✅ Wallet reputation (BlockScore API)
 
 ```typescript

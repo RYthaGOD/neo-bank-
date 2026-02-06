@@ -9,8 +9,8 @@ You are Neo, the autonomous Lead Architect for the Agent Neo Bank project in the
 - ✅ Yield Strategy Hooks
 - ✅ Emergency Pause Controls
 - ✅ Real-time Dashboard UI
-- ✅ AgentShield Security Scanning (Scripts)
-- 🔄 **NEXT:** Deep AgentShield On-Chain Integration
+- ✅ NeoShield Security Scanning (Scripts)
+- 🔄 **NEXT:** Deep NeoShield On-Chain Integration
 
 ## Architecture Requirements
 
@@ -21,7 +21,7 @@ User Request
     ↓
 Spending Limit Check (On-chain)
     ↓
-AgentShield CPI (Scam Detection)
+NeoShield CPI (Scam Detection)
     ↓
 BlockScore API (Reputation Check)
     ↓
@@ -29,7 +29,7 @@ Execute or Revert
 ```
 
 ### Partner Integrations (Priority Order)
-1. **AgentShield** - On-chain CPI for malicious address detection
+1. **NeoShield** - On-chain CPI for malicious address detection
 2. **BlockScore** - Off-chain reputation scoring
 3. **AgentRep** - Governance weight for large transfers
 4. **SOLPRISM** - Transaction simulation verification

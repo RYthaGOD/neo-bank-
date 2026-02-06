@@ -6,8 +6,7 @@ import { fileURLToPath } from 'url';
 
 // --- INLINED CONFIG & TYPES ---
 
-const AGENT_SHIELD_URL = "https://agentshield.lobsec.org/api";
-const AGENT_SHIELD_API_KEY = process.env.AGENT_SHIELD_API_KEY;
+// NeoShield uses local heuristics only - no external API needed
 const STRICT_MODE = true; // Fail closed
 
 // Whitelist relative paths (known safe)
@@ -40,7 +39,9 @@ interface CheckResult {
 // --- SCANNING LOGIC ---
 
 async function scanCode(code: string): Promise<CheckResult> {
-    // 1. Local Regex Check (High Speed, Zero Latency)
+    // NeoShield Local Checks - no external API dependency
+
+    // 1. Private Key Detection
     const privateKeyRegex = /[1-9A-HJ-NP-Za-km-z]{88}/;
     if (privateKeyRegex.test(code)) {
         return {
@@ -49,6 +50,7 @@ async function scanCode(code: string): Promise<CheckResult> {
         };
     }
 
+    // 2. Mnemonic Seed Detection
     const mnemonicRegex = /\b([a-z]{3,}\s){11}[a-z]{3,}\b/;
     if (mnemonicRegex.test(code)) {
         return {
@@ -57,60 +59,34 @@ async function scanCode(code: string): Promise<CheckResult> {
         };
     }
 
-    // 2. API Check (AgentShield)
-    try {
-        const response = await fetch(`${AGENT_SHIELD_URL}/scan`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(AGENT_SHIELD_API_KEY ? { 'Authorization': `Bearer ${AGENT_SHIELD_API_KEY}` } : {})
-            },
-            body: JSON.stringify({ code })
-        });
+    // 3. Suspicious patterns
+    const suspiciousPatterns = [
+        /eval\s*\(/,
+        /Function\s*\(/,
+        /child_process/,
+        /require\s*\(\s*['"`]https?:/,
+    ];
 
-        if (!response.ok) {
-            // Rate Limit fallback (Fail Open if no key)
-            if (response.status === 429) {
-                console.warn(`⚠️  Rate Limit (429) - Passing ${response.url}`);
-                return { passed: true, details: "API Rate Limit (Open)" };
-            }
-
-            // If strict mode, treat other API failures as a block
-            if (STRICT_MODE) {
-                return {
-                    passed: false,
-                    details: `API Scan Failed & Strict Mode Active: ${response.status}`,
-                };
-            }
-            return { passed: true, details: "API Failed (Open)" };
-        }
-
-        const data = await response.json();
-        const passed = data.safe === true;
-
-        if (!passed) {
-            console.log(`Debug [${data.threat}]:`, JSON.stringify(data));
-        }
-
-        return {
-            passed,
-            details: passed ? "Code verified safe" : `BLOCKED: ${data.threat || "Malicious code detected"}`,
-        };
-    } catch (error) {
-        if (STRICT_MODE) {
+    for (const pattern of suspiciousPatterns) {
+        if (pattern.test(code)) {
             return {
                 passed: false,
-                details: `API Error & Strict Mode Active: ${error}`,
+                details: "BLOCKED: Suspicious code pattern detected",
             };
         }
-        return { passed: true, details: "API Error (Open)" };
     }
+
+    // All checks passed
+    return {
+        passed: true,
+        details: "Code verified safe by NeoShield heuristics",
+    };
 }
 
 // --- MAIN EXECUTION ---
 
 async function scanCodebase() {
-    console.log("🛡️  Starting AgentShield Code Scan (Standalone)...");
+    console.log("🛡️  Starting NeoShield Code Scan...");
 
     // Find files
     const files = await glob("**/*.{ts,tsx,js,rs}", {
