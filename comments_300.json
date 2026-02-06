@@ -1,1 +1,0 @@
-{"error":"Invalid query parameters","details":{"formErrors":[],"fieldErrors":{"sort":["Invalid enum value. Expected 'hot' | 'new' | 'top', received 'old'"]}}}

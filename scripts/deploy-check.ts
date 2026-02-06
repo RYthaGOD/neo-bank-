@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PROGRAM_ID = "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh";
+const PROGRAM_ID = "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd";
 
 const NETWORKS = {
     devnet: "https://api.devnet.solana.com",

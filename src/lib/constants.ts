@@ -60,7 +60,7 @@ export const RATE_LIMITS = {
 // ============ SECURITY ============
 
 export const SECURITY_ENDPOINTS = {
-    AGENT_SHIELD: "https://agentshield.lobsec.org/api",
+    NEOSHIELD_URL: "https://api.neoshield.local",
     BLOCK_SCORE: "https://blockscore.vercel.app/api",
 } as const;
 

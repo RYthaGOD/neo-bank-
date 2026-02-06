@@ -121,30 +121,25 @@ cd bank && anchor build
 
 Every withdrawal passes through:
 
-1. **Spending Limits** (on-chain) — Hard cap per period
-2. **NeoShield** — Known scam address detection
-3. **BlockScore** — Wallet reputation score (min 40)
-4. **Intent Validation** — Balance + limit pre-check
+1.  **Spending Limits** (on-chain) — Hard cap per period
+2.  **NeoShield** — Known scam address detection
+3.  **BlockScore** — Wallet reputation score (min 40)
+4.  **Intent Validation** — Balance + limit pre-check
 
 ## 🤝 Partner Integrations (17)
 
 | Partner | Integration |
 |---------|-------------|
 | NeoShield | Scam detection |
-| BlockScore | Wallet reputation |
+| BlockScore | Reputation |
 | ClawFi | DeFi execution |
-| SAID | Identity verification |
-| WARGAMES | Macro risk intelligence |
-| Sipher | Privacy/stealth addresses |
-| AEGIS | DeFi swarm execution |
-| Varuna | Liquidation protection |
-| AgentList | Marketplace escrow |
+| SAID | Identity |
 | Nix-YieldRouter | Yield optimization |
-| ... | +7 more |
+| ... | +12 more |
 
 ## 📊 Stats
 
-- **Program ID:** `BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh`
+- **Program ID:** `FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd`
 - **Total Lines:** 5,500+
 - **Rust (on-chain):** 1,348 lines
 - **TypeScript (SDK):** 4,000+ lines
@@ -173,6 +168,23 @@ Every withdrawal passes through:
 | `agent-prompts` | LLM integration templates |
 | `constants` | Program values and helpers |
 | `cli` | Command-line interface |
+
+## 🗺️ Roadmap
+
+### Q1 2026: Hyper-Growth (Hackathon Phase)
+- ✅ **Core Program:** Vaults, limits, and hooks on Devnet.
+- ✅ **NeoShield v1:** Local heuristic scan for scam addresses.
+- ✅ **SDK Release:** Version 0.1 for agent integration.
+
+### Q2 2026: Agent Economy Settlement
+- 🔜 **x402 Protocol Integration:** Native support for the [x402 protocol](https://x402.org) to handle agent micropayments.
+- 🔜 **Usage-Based Fee Model:** Implement "pay-per-secure-check" and "outcome-based" fee structures.
+- 🔜 **Mainnet Deployment:** Audited release for production agents.
+
+### Q3 2026: The Global Agent Treasury
+- 🔜 **Agent Marketplace:** A directory for audited Neo Bank agents with verifiable performance.
+- 🔜 **Multi-Agent Orchestration:** Batching treasury operations for agent swarms.
+- 🔜 **DeFi SDK v2:** Deeper integration with Kamino, Meteora, and Jupiter for automated treasury management.
 
 ## 🏆 Hackathon
 

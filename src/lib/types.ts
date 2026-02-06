@@ -58,7 +58,7 @@ export interface BankConfigAccount {
 /**
  * Hook condition types
  */
-export type HookConditionType = 
+export type HookConditionType =
     | { balanceAbove: { threshold: bigint } }
     | { timeElapsed: { interval: bigint } }
     | { yieldAbove: { threshold: bigint } };
@@ -250,10 +250,10 @@ export interface SecurityAlertEvent extends BaseEvent {
 /**
  * Union of all events
  */
-export type NeoBankEvent = 
-    | WithdrawalEvent 
-    | DepositEvent 
-    | YieldEvent 
+export type NeoBankEvent =
+    | WithdrawalEvent
+    | DepositEvent
+    | YieldEvent
     | SecurityAlertEvent;
 
 // ============ CONFIGURATION ============
@@ -277,7 +277,7 @@ export interface SDKOptions {
  * Security layer options
  */
 export interface SecurityOptions {
-    agentShieldEnabled?: boolean;
+    neoShieldEnabled?: boolean;
     blockScoreEnabled?: boolean;
     minReputationScore?: number;
     rateLimitEnabled?: boolean;
