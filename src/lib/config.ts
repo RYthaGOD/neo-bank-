@@ -53,7 +53,7 @@ export interface NeoBankConfig {
 export const DEFAULT_CONFIG: NeoBankConfig = {
     rpcUrl: "https://api.devnet.solana.com",
     commitment: "confirmed",
-    programId: "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd",
+    programId: "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh",
 
     security: {
         neoShieldEnabled: true,

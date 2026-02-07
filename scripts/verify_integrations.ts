@@ -24,7 +24,7 @@ async function runVerification() {
     await integrations.solPrism.publishReasoning('trade_123', 'Moving average crossover');
 
     // SAID
-    const adminParams = new PublicKey('FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd');
+    const adminParams = new PublicKey('BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh');
     const isVerified = await integrations.said.verifyAdmin(adminParams);
     console.log(`SAID Admin Verified: ${isVerified}`);
 
