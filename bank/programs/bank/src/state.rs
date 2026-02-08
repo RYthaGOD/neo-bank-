@@ -44,14 +44,14 @@ pub enum HookCondition {
 /// Target DeFi protocols for yield deployment
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug, InitSpace)]
 pub enum YieldProtocol {
-    /// Simulated internal yield (current behavior)
+    /// Simulated internal yield (Fee-Based)
     Internal,
-    /// Jupiter aggregated yield (future CPI)
-    Jupiter,
-    /// Meteora LP positions (future CPI)
-    Meteora,
-    /// Marinade staked SOL (future CPI)
-    Marinade,
+    /// JitoSOL Liquid Staking (Devnet/Mainnet)
+    JitoSOL,
+    /// Future expansion
+    Reserved1,
+    /// Future expansion
+    Reserved2,
 }
 
 /// Agentic Hook: Auto-deploy yield strategy configuration
@@ -66,4 +66,17 @@ pub struct YieldStrategy {
     pub last_triggered: i64,          // Last trigger timestamp
     pub trigger_count: u64,           // Number of times triggered
     pub bump: u8,                     // PDA bump
+}
+
+/// Delegated Access: Allow a secondary keypair to spend on behalf of an agent
+/// The "Owner" (Admin) creates this PDA to authorize a "Delegate" (Bot).
+#[account]
+#[derive(InitSpace)]
+pub struct Delegate {
+    pub agent: Pubkey,                // The agent this delegate belongs to
+    pub delegate_key: Pubkey,         // The public key of the delegate (the bot)
+    pub can_spend: bool,              // Permission to withdraw (up to limits)
+    pub can_manage_yield: bool,       // Permission to trigger/configure yield
+    pub valid_until: i64,             // Expiration timestamp (0 = forever)
+    pub bump: u8,
 }

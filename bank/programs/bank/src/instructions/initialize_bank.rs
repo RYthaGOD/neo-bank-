@@ -27,7 +27,7 @@ pub struct InitializeBank<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitializeBank>, fee_bps: u16) -> Result<()> {
+pub fn initialize_bank_handler(ctx: Context<InitializeBank>, fee_bps: u16) -> Result<()> {
     let config = &mut ctx.accounts.config;
     config.admin = ctx.accounts.admin.key();
     config.protocol_fee_bps = fee_bps;

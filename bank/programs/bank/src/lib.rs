@@ -2,12 +2,15 @@ pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod state;
+pub mod events;
+
 
 use anchor_lang::prelude::*;
 
 pub use constants::*;
 pub use instructions::*;
 pub use state::*;
+pub use events::*;
 
 declare_id!("BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh");
 
@@ -16,7 +19,7 @@ pub mod bank {
     use super::*;
 
     pub fn initialize_bank(ctx: Context<InitializeBank>, fee_bps: u16) -> Result<()> {
-        instructions::initialize_bank::handler(ctx, fee_bps)
+        instructions::initialize_bank::initialize_bank_handler(ctx, fee_bps)
     }
 
     pub fn register_agent(
@@ -25,19 +28,19 @@ pub mod bank {
         spending_limit: u64,
         period_duration: i64,
     ) -> Result<()> {
-        instructions::register_agent::handler(ctx, name, spending_limit, period_duration)
+        instructions::register_agent::register_agent_handler(ctx, name, spending_limit, period_duration)
     }
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-        instructions::withdraw::handler(ctx, amount)
+        instructions::withdraw::withdraw_handler(ctx, amount)
     }
 
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-        instructions::deposit::handler(ctx, amount)
+        instructions::deposit::deposit_handler(ctx, amount)
     }
 
     pub fn accrue_yield(ctx: Context<AccrueYield>) -> Result<()> {
-        instructions::accrue_yield::handler(ctx)
+        instructions::accrue_yield::accrue_yield_handler(ctx)
     }
 
     /// Validate a transaction intent BEFORE executing.
@@ -47,7 +50,7 @@ pub mod bank {
         ctx: Context<ValidateIntent>,
         intent: instructions::validate_intent::TransactionIntent,
     ) -> Result<()> {
-        instructions::validate_intent::handler(ctx, intent)
+        instructions::validate_intent::validate_intent_handler(ctx, intent)
     }
 
     /// Configure an agentic yield strategy hook.
@@ -110,26 +113,18 @@ pub mod bank {
         instructions::treasury_governance::execute_proposal_handler(ctx, proposal_id)
     }
 
-    // ============ YIELD CPIs ============
+    // ============ REAL YIELD (JITO) ============
 
-    /// Deploy funds to Jupiter for yield (CPI stub).
-    pub fn deploy_to_jupiter(ctx: Context<DeployToJupiter>, amount: u64, min_out: u64) -> Result<()> {
-        instructions::yield_cpi::deploy_to_jupiter_handler(ctx, amount, min_out)
+    /// Deploy funds to JitoSOL Liquid Staking.
+    /// Uses CPI to Jito Stake Pool (Devnet: DPoo15wWDqpPJJtS2MUZ49aRxqz5ZaaJCJP4z8bLuib)
+    pub fn deploy_to_jito(ctx: Context<DeployToJito>, amount: u64) -> Result<()> {
+        instructions::yield_cpi::deploy_to_jito_handler(ctx, amount)
     }
 
-    /// Deploy funds to Meteora LP (CPI stub).
-    pub fn deploy_to_meteora(ctx: Context<DeployToMeteora>, amount: u64, bin_id: i32) -> Result<()> {
-        instructions::yield_cpi::deploy_to_meteora_handler(ctx, amount, bin_id)
-    }
-
-    /// Deploy funds to Marinade for liquid staking (CPI stub).
-    pub fn deploy_to_marinade(ctx: Context<DeployToMarinade>, amount: u64) -> Result<()> {
-        instructions::yield_cpi::deploy_to_marinade_handler(ctx, amount)
-    }
-
-    /// Withdraw funds from a yield protocol (CPI stub).
-    pub fn withdraw_from_protocol(ctx: Context<WithdrawFromProtocol>, amount: u64) -> Result<()> {
-        instructions::yield_cpi::withdraw_from_protocol_handler(ctx, amount)
+    /// Withdraw funds from JitoSOL.
+    /// Burns JitoSOL and returns SOL from reserve stake.
+    pub fn withdraw_from_jito(ctx: Context<WithdrawFromJito>, amount: u64) -> Result<()> {
+        instructions::yield_cpi::withdraw_from_jito_handler(ctx, amount)
     }
 
     // ============ EMERGENCY CONTROLS ============
@@ -152,5 +147,23 @@ pub mod bank {
     /// Set to 0 to disable circuit breaker.
     pub fn update_auto_threshold(ctx: Context<UpdateAutoThreshold>, new_threshold: u32) -> Result<()> {
         instructions::circuit_breaker::update_auto_threshold_handler(ctx, new_threshold)
+    }
+
+    // ============ DELEGATED ACCESS ============
+
+    /// Authorize a new delegate keypair for an agent vault.
+    pub fn add_delegate(
+        ctx: Context<AddDelegate>,
+        delegate_key: Pubkey,
+        can_spend: bool,
+        can_manage_yield: bool,
+        valid_until: i64,
+    ) -> Result<()> {
+        instructions::delegate::add_delegate_handler(ctx, delegate_key, can_spend, can_manage_yield, valid_until)
+    }
+
+    /// Remove a delegate keypair.
+    pub fn remove_delegate(ctx: Context<RemoveDelegate>) -> Result<()> {
+        instructions::delegate::remove_delegate_handler(ctx)
     }
 }

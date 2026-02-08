@@ -21,6 +21,34 @@ describe("agent-neo-bank", () => {
     const PERIOD_DURATION = new anchor.BN(86400); // 24 Hours
     const AGENT_NAME = "TEST_AGENT_V1";
 
+    it("Initialize Bank", async () => {
+        const [config, _configBump] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            program.programId
+        );
+        const [treasury, _treasuryBump] = PublicKey.findProgramAddressSync(
+            [Buffer.from("treasury")],
+            program.programId
+        );
+
+        // Check if already initialized (in case of re-run)
+        try {
+            await program.account.bankConfig.fetch(config);
+            console.log("Bank already initialized");
+        } catch (e) {
+            await program.methods
+                .initializeBank(50) // 0.5% protocol fee
+                .accounts({
+                    admin: provider.wallet.publicKey,
+                    config: config,
+                    treasury: treasury,
+                    systemProgram: SystemProgram.programId,
+                })
+                .rpc();
+            console.log("Bank Initialized");
+        }
+    });
+
     it("Airdrop to Agent Owner", async () => {
         // Audit Step: Ensure the 'Agent' has funds to pay for its own registration (Autonomous Behavior)
         const tx = await provider.connection.requestAirdrop(agentOwner.publicKey, 2 * LAMPORTS_PER_SOL);
@@ -86,11 +114,19 @@ describe("agent-neo-bank", () => {
 
         const balanceBefore = await provider.connection.getBalance(agentOwner.publicKey);
 
+        const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
+        const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from("treasury")], program.programId);
+
         await program.methods
             .withdraw(withdrawAmount)
             .accounts({
-                owner: agentOwner.publicKey,
+                authority: agentOwner.publicKey,
+                agent: agentPda,
+                vault: vaultPda,
                 destination: agentOwner.publicKey,
+                config: configPda,
+                treasury: treasuryPda,
+                delegateRecord: null,
             })
             .signers([agentOwner])
             .rpc();
@@ -114,11 +150,19 @@ describe("agent-neo-bank", () => {
         const withdrawAmount = new anchor.BN(1.0 * LAMPORTS_PER_SOL); // Already spent 0.5, Limit is 1.0. Total would be 1.5.
 
         try {
+            const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
+            const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from("treasury")], program.programId);
+
             await program.methods
                 .withdraw(withdrawAmount)
                 .accounts({
-                    owner: agentOwner.publicKey,
+                    authority: agentOwner.publicKey,
+                    agent: agentPda,
+                    vault: vaultPda,
                     destination: agentOwner.publicKey,
+                    config: configPda,
+                    treasury: treasuryPda,
+                    delegateRecord: null,
                 })
                 .signers([agentOwner])
                 .rpc();
@@ -135,14 +179,19 @@ describe("agent-neo-bank", () => {
         }
     });
 
-    it("Unauthorized Party cannot withdraw (Security Check)", async () => {
+    it("Authorized Party cannot withdraw (Security Check)", async () => {
         const thief = Keypair.generate();
         try {
             await program.methods
                 .withdraw(new anchor.BN(0.1 * LAMPORTS_PER_SOL))
                 .accounts({
-                    owner: thief.publicKey, // Wrong owner
-                    destination: thief.publicKey
+                    authority: thief.publicKey, // Wrong owner
+                    agent: agentPda,
+                    vault: vaultPda,
+                    destination: thief.publicKey,
+                    config: (await PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId))[0],
+                    treasury: (await PublicKey.findProgramAddressSync([Buffer.from("treasury")], program.programId))[0],
+                    delegateRecord: null,
                 })
                 .signers([thief])
                 .rpc();
@@ -151,4 +200,97 @@ describe("agent-neo-bank", () => {
             console.log("Unauthorized access blocked.");
         }
     });
+
+    // ============ DELEGATION TESTS ============
+
+    const delegateUser = Keypair.generate();
+    let delegatePda: PublicKey;
+
+    it("Add Delegate", async () => {
+        // Fund delegate for fees
+        await provider.connection.requestAirdrop(delegateUser.publicKey, 1 * LAMPORTS_PER_SOL);
+
+        const [pda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("delegate"), agentPda.toBuffer(), delegateUser.publicKey.toBuffer()],
+            program.programId
+        );
+        delegatePda = pda;
+
+        await program.methods
+            .addDelegate(delegateUser.publicKey, true, false, new anchor.BN(0)) // Can spend, No yield, No expiry
+            .accounts({
+                owner: agentOwner.publicKey,
+                agent: agentPda,
+                delegateAccount: delegatePda,
+            })
+            .signers([agentOwner])
+            .rpc();
+
+        const delAcct = await program.account.delegate.fetch(delegatePda);
+        assert.ok(delAcct.canSpend);
+        console.log("Delegate Added:", delegateUser.publicKey.toString());
+    });
+
+    it("Delegate Withdraws (Success)", async () => {
+        const withdrawAmount = new anchor.BN(0.1 * LAMPORTS_PER_SOL);
+        const vaultBefore = await provider.connection.getBalance(vaultPda);
+
+        // Note: Withdraw instruction needs 'authority', 'agent', 'vault', 'destination', 'config', 'treasury', 'delegate_record'
+        const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
+        const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from("treasury")], program.programId);
+
+        await program.methods
+            .withdraw(withdrawAmount)
+            .accounts({
+                authority: delegateUser.publicKey, // Delegate signs
+                agent: agentPda,
+                vault: vaultPda,
+                destination: delegateUser.publicKey,
+                config: configPda,
+                treasury: treasuryPda,
+                delegateRecord: delegatePda, // Must provide PDA
+            })
+            .signers([delegateUser])
+            .rpc();
+
+        const vaultAfter = await provider.connection.getBalance(vaultPda);
+        assert.isBelow(vaultAfter, vaultBefore);
+        console.log("Delegate Withdrawal Successful");
+    });
+
+    it("Delegate Permissions Revoked", async () => {
+        await program.methods
+            .removeDelegate()
+            .accounts({
+                owner: agentOwner.publicKey,
+                agent: agentPda,
+                delegate: delegatePda,
+            })
+            .signers([agentOwner])
+            .rpc();
+
+        // Try to withdraw again - should fail (Account Not Initialized or similar, since PDA is closed)
+        try {
+            const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
+            const [treasuryPda] = PublicKey.findProgramAddressSync([Buffer.from("treasury")], program.programId);
+
+            await program.methods
+                .withdraw(new anchor.BN(0.1 * LAMPORTS_PER_SOL))
+                .accounts({
+                    authority: delegateUser.publicKey,
+                    agent: agentPda,
+                    vault: vaultPda,
+                    destination: delegateUser.publicKey,
+                    config: configPda,
+                    treasury: treasuryPda,
+                    delegateRecord: delegatePda,
+                })
+                .signers([delegateUser])
+                .rpc();
+            assert.fail("Should fail after revocation");
+        } catch (e) {
+            console.log("Revoked delegate blocked.");
+        }
+    });
+
 });

@@ -48,4 +48,8 @@ pub enum BankError {
     NeoShieldCheckFailed,
     #[msg("Wallet reputation score too low (BlockScore).")]
     LowReputationScore,
+    #[msg("Delegate not authorized for this action.")]
+    UnauthorizedDelegate,
+    #[msg("Delegate permission has expired.")]
+    DelegateExpired,
 }

@@ -10,6 +10,7 @@ pub mod yield_cpi;
 pub mod emergency_pause;
 pub mod security_cpi;
 pub mod circuit_breaker;
+pub mod delegate;
 
 pub use initialize_bank::*;
 pub use register_agent::*;
@@ -23,3 +24,4 @@ pub use yield_cpi::*;
 pub use emergency_pause::*;
 pub use security_cpi::*;
 pub use circuit_breaker::*;
+pub use delegate::*;

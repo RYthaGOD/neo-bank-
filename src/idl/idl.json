@@ -1,5 +1,5 @@
 {
-  "address": "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd",
+  "address": "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh",
   "metadata": {
     "name": "bank",
     "version": "0.1.0",
@@ -42,9 +42,173 @@
               }
             ]
           }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
+    },
+    {
+      "name": "add_delegate",
+      "docs": [
+        "Authorize a new delegate keypair for an agent vault."
+      ],
+      "discriminator": [
+        3,
+        67,
+        128,
+        218,
+        69,
+        139,
+        53,
+        88
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "delegate_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "arg",
+                "path": "delegate_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "delegate_key",
+          "type": "pubkey"
+        },
+        {
+          "name": "can_spend",
+          "type": "bool"
+        },
+        {
+          "name": "can_manage_yield",
+          "type": "bool"
+        },
+        {
+          "name": "valid_until",
+          "type": "i64"
+        }
+      ]
     },
     {
       "name": "check_hook_status",
@@ -332,130 +496,20 @@
       ]
     },
     {
-      "name": "deploy_to_jupiter",
+      "name": "deploy_to_jito",
       "docs": [
-        "Deploy funds to Jupiter for yield (CPI stub)."
+        "Deploy funds to JitoSOL Liquid Staking.",
+        "Uses CPI to Jito Stake Pool (Devnet: DPoo15wWDqpPJJtS2MUZ49aRxqz5ZaaJCJP4z8bLuib)"
       ],
       "discriminator": [
-        2,
-        144,
-        109,
-        48,
-        134,
-        106,
-        204,
-        142
-      ],
-      "accounts": [
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "agent",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  103,
-                  101,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "authority"
-              }
-            ]
-          }
-        },
-        {
-          "name": "vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "agent"
-              }
-            ]
-          }
-        },
-        {
-          "name": "yield_strategy",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  121,
-                  105,
-                  101,
-                  108,
-                  100,
-                  95,
-                  115,
-                  116,
-                  114,
-                  97,
-                  116,
-                  101,
-                  103,
-                  121
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "agent"
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "min_out",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "deploy_to_marinade",
-      "docs": [
-        "Deploy funds to Marinade for liquid staking (CPI stub)."
-      ],
-      "discriminator": [
-        23,
-        37,
-        190,
-        25,
+        178,
         0,
-        22,
-        15,
-        183
+        59,
+        41,
+        8,
+        222,
+        175,
+        114
       ],
       "accounts": [
         {
@@ -538,125 +592,43 @@
           }
         },
         {
+          "name": "jito_program"
+        },
+        {
+          "name": "stake_pool",
+          "writable": true
+        },
+        {
+          "name": "pool_withdraw_authority"
+        },
+        {
+          "name": "reserve_stake",
+          "writable": true
+        },
+        {
+          "name": "manager_fee",
+          "writable": true
+        },
+        {
+          "name": "destination_pool_account",
+          "writable": true
+        },
+        {
+          "name": "pool_mint",
+          "writable": true
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
         }
       ],
       "args": [
         {
           "name": "amount",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "deploy_to_meteora",
-      "docs": [
-        "Deploy funds to Meteora LP (CPI stub)."
-      ],
-      "discriminator": [
-        126,
-        47,
-        85,
-        44,
-        84,
-        191,
-        147,
-        92
-      ],
-      "accounts": [
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "agent",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  103,
-                  101,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "authority"
-              }
-            ]
-          }
-        },
-        {
-          "name": "vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "agent"
-              }
-            ]
-          }
-        },
-        {
-          "name": "yield_strategy",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  121,
-                  105,
-                  101,
-                  108,
-                  100,
-                  95,
-                  115,
-                  116,
-                  114,
-                  97,
-                  116,
-                  101,
-                  103,
-                  121
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "agent"
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "bin_id",
-          "type": "i32"
         }
       ]
     },
@@ -1068,6 +1040,85 @@
       ]
     },
     {
+      "name": "remove_delegate",
+      "docs": [
+        "Remove a delegate keypair."
+      ],
+      "discriminator": [
+        94,
+        37,
+        16,
+        59,
+        7,
+        84,
+        97,
+        211
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "delegate",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "delegate.delegate_key",
+                "account": "Delegate"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "reset_security_counter",
       "docs": [
         "Reset suspicious activity counter (admin only)."
@@ -1477,12 +1528,9 @@
       ],
       "accounts": [
         {
-          "name": "owner",
+          "name": "authority",
           "writable": true,
-          "signer": true,
-          "relations": [
-            "agent"
-          ]
+          "signer": true
         },
         {
           "name": "agent",
@@ -1501,7 +1549,8 @@
               },
               {
                 "kind": "account",
-                "path": "owner"
+                "path": "agent.owner",
+                "account": "Agent"
               }
             ]
           }
@@ -1573,6 +1622,39 @@
           }
         },
         {
+          "name": "delegate_record",
+          "docs": [
+            "Optional Delegate Record",
+            "Must be provided if authority != agent.owner"
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -1585,19 +1667,20 @@
       ]
     },
     {
-      "name": "withdraw_from_protocol",
+      "name": "withdraw_from_jito",
       "docs": [
-        "Withdraw funds from a yield protocol (CPI stub)."
+        "Withdraw funds from JitoSOL.",
+        "Burns JitoSOL and returns SOL from reserve stake."
       ],
       "discriminator": [
-        211,
-        133,
-        218,
-        176,
-        206,
-        231,
-        31,
-        100
+        134,
+        140,
+        86,
+        155,
+        84,
+        130,
+        5,
+        44
       ],
       "accounts": [
         {
@@ -1680,8 +1763,42 @@
           }
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "name": "jito_program"
+        },
+        {
+          "name": "stake_pool",
+          "writable": true
+        },
+        {
+          "name": "pool_withdraw_authority"
+        },
+        {
+          "name": "vault_jito_account",
+          "writable": true
+        },
+        {
+          "name": "reserve_stake",
+          "writable": true
+        },
+        {
+          "name": "manager_fee",
+          "writable": true
+        },
+        {
+          "name": "pool_mint",
+          "writable": true
+        },
+        {
+          "name": "clock"
+        },
+        {
+          "name": "stake_history"
+        },
+        {
+          "name": "stake_program"
+        },
+        {
+          "name": "token_program"
         }
       ],
       "args": [
@@ -1733,6 +1850,19 @@
       ]
     },
     {
+      "name": "Delegate",
+      "discriminator": [
+        92,
+        145,
+        166,
+        111,
+        11,
+        38,
+        38,
+        247
+      ]
+    },
+    {
       "name": "TreasuryProposal",
       "discriminator": [
         19,
@@ -1756,6 +1886,60 @@
         105,
         146,
         235
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "DelegateAdded",
+      "discriminator": [
+        96,
+        159,
+        58,
+        144,
+        26,
+        171,
+        141,
+        70
+      ]
+    },
+    {
+      "name": "DelegateRemoved",
+      "discriminator": [
+        91,
+        243,
+        235,
+        175,
+        109,
+        235,
+        217,
+        84
+      ]
+    },
+    {
+      "name": "Withdrawal",
+      "discriminator": [
+        6,
+        187,
+        215,
+        71,
+        92,
+        85,
+        90,
+        83
+      ]
+    },
+    {
+      "name": "YieldInteract",
+      "discriminator": [
+        161,
+        241,
+        248,
+        90,
+        50,
+        63,
+        209,
+        74
       ]
     }
   ],
@@ -1869,6 +2053,16 @@
       "code": 6021,
       "name": "LowReputationScore",
       "msg": "Wallet reputation score too low (BlockScore)."
+    },
+    {
+      "code": 6022,
+      "name": "UnauthorizedDelegate",
+      "msg": "Delegate not authorized for this action."
+    },
+    {
+      "code": 6023,
+      "name": "DelegateExpired",
+      "msg": "Delegate permission has expired."
     }
   ],
   "types": [
@@ -1996,6 +2190,86 @@
           {
             "name": "last_security_check",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Delegate",
+      "docs": [
+        "Delegated Access: Allow a secondary keypair to spend on behalf of an agent",
+        "The \"Owner\" (Admin) creates this PDA to authorize a \"Delegate\" (Bot)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "delegate_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "can_spend",
+            "type": "bool"
+          },
+          {
+            "name": "can_manage_yield",
+            "type": "bool"
+          },
+          {
+            "name": "valid_until",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DelegateAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "delegate",
+            "type": "pubkey"
+          },
+          {
+            "name": "can_spend",
+            "type": "bool"
+          },
+          {
+            "name": "can_manage_yield",
+            "type": "bool"
+          },
+          {
+            "name": "valid_until",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DelegateRemoved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "delegate",
+            "type": "pubkey"
           }
         ]
       }
@@ -2161,6 +2435,70 @@
       }
     },
     {
+      "name": "Withdrawal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "period_spend",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "YieldInteract",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "protocol",
+            "type": {
+              "defined": {
+                "name": "YieldProtocol"
+              }
+            }
+          },
+          {
+            "name": "action",
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "YieldProtocol",
       "docs": [
         "Target DeFi protocols for yield deployment"
@@ -2172,13 +2510,13 @@
             "name": "Internal"
           },
           {
-            "name": "Jupiter"
+            "name": "JitoSOL"
           },
           {
-            "name": "Meteora"
+            "name": "Reserved1"
           },
           {
-            "name": "Marinade"
+            "name": "Reserved2"
           }
         ]
       }

@@ -27,7 +27,7 @@ pub struct Deposit<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+pub fn deposit_handler(ctx: Context<Deposit>, amount: u64) -> Result<()> {
     let agent = &mut ctx.accounts.agent;
 
     // Transfer from owner to vault

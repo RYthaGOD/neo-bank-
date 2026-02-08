@@ -214,7 +214,7 @@ export type {
 
 // Version
 export const VERSION = '1.0.0';
-export const PROGRAM_VERSION = 'FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd';
+export const PROGRAM_VERSION = 'BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh';
 
 /**
  * Quick start helper

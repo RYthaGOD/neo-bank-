@@ -137,21 +137,16 @@ pub fn trigger_yield_hook_handler(ctx: Context<TriggerYieldHook>) -> Result<()> 
     
     match strategy.protocol {
         YieldProtocol::Internal => {
-            // Already earning internal yield, just log
+            // Fee-based internal yield
             msg!("HOOK_TRIGGERED: Internal yield confirmed. Amount: {}", deploy_amount);
         },
-        YieldProtocol::Jupiter => {
-            // Future: CPI to Jupiter for yield aggregation
-            msg!("HOOK_TRIGGERED: Would deploy {} to Jupiter (CPI pending)", deploy_amount);
+        YieldProtocol::JitoSOL => {
+            // Future: CPI to Jito Stake Pool
+            msg!("HOOK_TRIGGERED: Would deploy {} to JitoSOL (CPI pending)", deploy_amount);
         },
-        YieldProtocol::Meteora => {
-            // Future: CPI to Meteora for LP
-            msg!("HOOK_TRIGGERED: Would deploy {} to Meteora LP (CPI pending)", deploy_amount);
-        },
-        YieldProtocol::Marinade => {
-            // Future: CPI to Marinade for liquid staking
-            msg!("HOOK_TRIGGERED: Would deploy {} to Marinade (CPI pending)", deploy_amount);
-        },
+        _ => {
+            msg!("HOOK_SKIPPED: Protocol reserved/unsupported");
+        }
     }
     
     // Update strategy state

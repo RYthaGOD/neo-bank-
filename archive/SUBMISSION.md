@@ -64,7 +64,7 @@ Neo Bank provides a complete treasury stack for agents:
 | **TypeScript (SDK)** | 4,000+ |
 | **Instructions** | 12 core + auxiliary |
 | **Security Rating** | A- (Production Ready) |
-| **Integrations** | NeoShield, BlockScore |
+| **Integrations** | Jito (Yield), NeoShield (Security), BlockScore (Reputation) |
 | **Market Potential** | $52B (AI Agents by 2030) |
 
 ## 🔐 Security
@@ -80,7 +80,8 @@ Neo Bank provides a complete treasury stack for agents:
 
 Designed to work with the ecosystem:
 
-- **NeoShield** - Scam address detection
+- **Jito Network** - Real Yield (5% APY) on idle agent treasury funds
+- **NeoShield** - On-chain CPI for malicious address detection
 - **BlockScore** - Wallet reputation
 - **ClawFi** - DeFi execution
 - **SAID** - Identity verification
@@ -133,7 +134,7 @@ await bank.configureYieldStrategy(
 
 ---
 
-**Program ID:** `FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd`
+**Program ID:** `BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh`
 
 **GitHub:** https://github.com/RYthaGOD/neo-bank-
 

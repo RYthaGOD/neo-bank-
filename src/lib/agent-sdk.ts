@@ -3,6 +3,7 @@ import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { PublicKey, Connection, Keypair } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import idl from "../idl/idl.json";
+import { PROGRAM_ID } from "./constants";
 
 export class AgentNeoBank {
     private program: Program;
@@ -11,7 +12,7 @@ export class AgentNeoBank {
     constructor(
         connection: Connection,
         wallet: anchor.Wallet,
-        programId: string = process.env.NEXT_PUBLIC_PROGRAM_ID || "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd"
+        programId: string = process.env.NEXT_PUBLIC_PROGRAM_ID || PROGRAM_ID
     ) {
         this.provider = new AnchorProvider(connection, wallet, {
             preflightCommitment: "processed",
@@ -42,6 +43,17 @@ export class AgentNeoBank {
     }
 
     /**
+     * Get the PDA for a delegate record.
+     */
+    public getDelegatePda(agentPda: PublicKey, delegateKey: PublicKey): PublicKey {
+        const [delegatePda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("delegate"), agentPda.toBuffer(), delegateKey.toBuffer()],
+            this.program.programId
+        );
+        return delegatePda;
+    }
+
+    /**
      * Register a new agent with a spending limit and period.
      */
     public async registerAgent(name: string, dailyLimitSol: number) {
@@ -50,6 +62,57 @@ export class AgentNeoBank {
 
         return await this.program.methods
             .registerAgent(name, spendingLimit, periodDuration)
+            .accounts({
+                owner: this.provider.wallet.publicKey,
+                agent: this.getAgentPda(this.provider.wallet.publicKey),
+                vault: this.getVaultPda(this.getAgentPda(this.provider.wallet.publicKey)),
+                systemProgram: anchor.web3.SystemProgram.programId,
+            })
+            .rpc({ skipPreflight: true });
+    }
+
+    /**
+     * Authorize a delegate to spend on behalf of the agent.
+     */
+    public async addDelegate(
+        delegateKey: PublicKey,
+        canSpend: boolean = true,
+        canManageYield: boolean = false,
+        validUntil: number = 0 // 0 = forever
+    ) {
+        const agentPda = this.getAgentPda(this.provider.wallet.publicKey);
+        const delegatePda = this.getDelegatePda(agentPda, delegateKey);
+
+        return await this.program.methods
+            .addDelegate(
+                delegateKey,
+                canSpend,
+                canManageYield,
+                new BN(validUntil)
+            )
+            .accounts({
+                owner: this.provider.wallet.publicKey,
+                agent: agentPda,
+                delegateAccount: delegatePda,
+                systemProgram: anchor.web3.SystemProgram.programId,
+            })
+            .rpc();
+    }
+
+    /**
+     * Remove a delegate's authorization.
+     */
+    public async removeDelegate(delegateKey: PublicKey) {
+        const agentPda = this.getAgentPda(this.provider.wallet.publicKey);
+        const delegatePda = this.getDelegatePda(agentPda, delegateKey);
+
+        return await this.program.methods
+            .removeDelegate()
+            .accounts({
+                owner: this.provider.wallet.publicKey,
+                agent: agentPda,
+                delegate: delegatePda,
+            })
             .rpc();
     }
 
@@ -74,8 +137,13 @@ export class AgentNeoBank {
 
     /**
      * Withdraw funds from the vault to a destination (subject to limit).
+     * Supports Delegated Access.
      */
-    public async withdraw(amountSol: number, destination: PublicKey) {
+    public async withdraw(
+        amountSol: number,
+        destination: PublicKey,
+        delegateKey?: PublicKey // Optional: if using a delegate keypair
+    ) {
         const amount = new BN(amountSol * anchor.web3.LAMPORTS_PER_SOL);
         const [configPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("config")],
@@ -86,12 +154,71 @@ export class AgentNeoBank {
             this.program.programId
         );
 
+        // Determine who is signing (Owner is default)
+        // If delegateKey is provided, we assume the provider wallet IS the delegate
+        const signerKey = this.provider.wallet.publicKey;
+
+        // Determine accounts
+        // If the signer is NOT the agent owner (derived from PDA logic usually, but here we can only guess context)
+        // We need to fetch agent Data to know the owner, OR pass owner explicitly.
+        // For simplicity, we assume this.provider.wallet is the AUTHORITY.
+
+        // Wait, to get the Agent PDA we usually use the Wallet. But if I am a Delegate, I am NOT the owner.
+        // So `getAgentPda(signerKey)` would fail to find the agent I want to control.
+        // The SDK needs an `agentOwner` param if acting as a delegate.
+        // Updating signature to: withdraw(amount, dest, agentOwner?)
+
+        // Actually, let's keep it simple: We assume `this.provider` is the OWNER.
+        // If we want to support delegates, we need a separate method `withdrawAsDelegate`.
+
         return await this.program.methods
             .withdraw(amount)
             .accounts({
                 destination: destination,
                 config: configPda,
                 treasury: treasuryPda,
+                delegateRecord: null as any, // IDL treats optional accounts as nullable
+            })
+            .rpc();
+    }
+
+    /**
+     * Withdraw as a Delegate.
+     */
+    public async withdrawAsDelegate(
+        agentOwner: PublicKey,
+        amountSol: number,
+        destination: PublicKey
+    ) {
+        const amount = new BN(amountSol * anchor.web3.LAMPORTS_PER_SOL);
+        const agentPda = this.getAgentPda(agentOwner);
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            this.program.programId
+        );
+        const [treasuryPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("treasury")],
+            this.program.programId
+        );
+        const [vaultPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("vault"), agentPda.toBuffer()],
+            this.program.programId
+        );
+
+        const delegateKey = this.provider.wallet.publicKey;
+        const delegatePda = this.getDelegatePda(agentPda, delegateKey);
+
+        return await this.program.methods
+            .withdraw(amount)
+            .accounts({
+                authority: delegateKey,
+                agent: agentPda,
+                vault: vaultPda,
+                destination: destination,
+                config: configPda,
+                treasury: treasuryPda,
+                delegateRecord: delegatePda,
+                systemProgram: anchor.web3.SystemProgram.programId,
             })
             .rpc();
     }
@@ -104,15 +231,137 @@ export class AgentNeoBank {
         return await (this.program.account as any).agent.fetch(agentPda);
     }
 
+    // ============ REAL YIELD (JITO) ============
+
     /**
-     * Accrue yield manually (Cranks/Agents can call this).
+     * Deploy funds to JitoSOL (Devnet).
+     * Fetches real Jito Stake Pool accounts for lawful CPI.
+     */
+    public async deployToJito(amountSol: number) {
+        const amount = new BN(amountSol * anchor.web3.LAMPORTS_PER_SOL);
+        const agentPda = this.getAgentPda(this.provider.wallet.publicKey);
+        const vaultPda = this.getVaultPda(agentPda);
+        const strategyPda = this.getYieldStrategyPda(agentPda);
+
+        // Jito Devnet Constants
+        const JITO_POOL_ID = new PublicKey("JitoY5pcAxWX6iyP2QdFwTznGb8A99PRCUCVVxB46WZ");
+        const JITO_PROGRAM_ID = new PublicKey("DPoo15wWDqpPJJtS2MUZ49aRxqz5ZaaJCJP4z8bLuib");
+
+        // Helper to find Jito/SPL Stake Pool addresses
+        // Using manual derivation to avoid heavy dependency import issues in edge runtime if any
+        // See: https://github.com/solana-labs/solana-program-library/blob/master/stake-pool/js/src/index.ts
+        const findWithdrawAuthority = (pool: PublicKey) => PublicKey.findProgramAddressSync(
+            [pool.toBuffer(), Buffer.from("withdraw")],
+            JITO_PROGRAM_ID
+        )[0];
+
+        // For reserve, fee, mint - we ideally fetch the account.
+        // But for Devnet hackathon speed, we can try to rely on derived addresses or specific known ones.
+        // Actually, let's fetch the account data and parse strictly.
+        // We will requires @solana/spl-stake-pool to be installed.
+        // Dynamic import to avoid SSR issues
+        const { getStakePoolAccount } = await import("@solana/spl-stake-pool");
+
+        const stakePool = await getStakePoolAccount(this.provider.connection, JITO_POOL_ID);
+        const withdrawAuthority = findWithdrawAuthority(JITO_POOL_ID);
+
+        // Find destination JitoSOL ATA for the Vault
+        const destinationPoolAccount = await anchor.utils.token.associatedAddress({
+            mint: stakePool.account.data.poolMint,
+            owner: vaultPda
+        });
+
+        return await this.program.methods
+            .deployToJito(amount)
+            .accounts({
+                authority: this.provider.wallet.publicKey,
+                agent: agentPda,
+                vault: vaultPda,
+                yieldStrategy: strategyPda,
+                jitoProgram: JITO_PROGRAM_ID,
+                stakePool: JITO_POOL_ID,
+                poolWithdrawAuthority: withdrawAuthority,
+                reserveStake: stakePool.account.data.reserveStake,
+                managerFee: stakePool.account.data.managerFeeAccount,
+                destinationPoolAccount: destinationPoolAccount,
+                poolMint: stakePool.account.data.poolMint,
+                systemProgram: anchor.web3.SystemProgram.programId,
+                tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+            })
+            .rpc();
+    }
+
+    /**
+     * Withdraw funds from JitoSOL.
+     */
+    public async withdrawFromJito(amountSol: number) {
+        const amount = new BN(amountSol * anchor.web3.LAMPORTS_PER_SOL);
+        const agentPda = this.getAgentPda(this.provider.wallet.publicKey);
+        const vaultPda = this.getVaultPda(agentPda);
+        const strategyPda = this.getYieldStrategyPda(agentPda);
+
+        const JITO_POOL_ID = new PublicKey("JitoY5pcAxWX6iyP2QdFwTznGb8A99PRCUCVVxB46WZ");
+        const JITO_PROGRAM_ID = new PublicKey("DPoo15wWDqpPJJtS2MUZ49aRxqz5ZaaJCJP4z8bLuib");
+
+        const { getStakePoolAccount } = await import("@solana/spl-stake-pool");
+        const stakePool = await getStakePoolAccount(this.provider.connection, JITO_POOL_ID);
+
+        const findWithdrawAuthority = (pool: PublicKey) => PublicKey.findProgramAddressSync(
+            [pool.toBuffer(), Buffer.from("withdraw")],
+            JITO_PROGRAM_ID
+        )[0];
+
+        const vaultJitoAccount = await anchor.utils.token.associatedAddress({
+            mint: stakePool.account.data.poolMint,
+            owner: vaultPda
+        });
+
+        return await this.program.methods
+            .withdrawFromJito(amount)
+            .accounts({
+                authority: this.provider.wallet.publicKey,
+                agent: agentPda,
+                vault: vaultPda,
+                yieldStrategy: strategyPda,
+                jitoProgram: JITO_PROGRAM_ID,
+                stakePool: JITO_POOL_ID,
+                poolWithdrawAuthority: findWithdrawAuthority(JITO_POOL_ID),
+                vaultJitoAccount: vaultJitoAccount,
+                reserveStake: stakePool.account.data.reserveStake,
+                managerFee: stakePool.account.data.managerFeeAccount,
+                poolMint: stakePool.account.data.poolMint,
+                clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+                stakeHistory: anchor.web3.SYSVAR_STAKE_HISTORY_PUBKEY,
+                stakeProgram: anchor.web3.StakeProgram.programId,
+                tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+            })
+            .rpc();
+    }
+
+    /**
+     * Accrue yield manually (Legacy / Fallback).
      */
     public async accrueYield(agentOwner: PublicKey) {
+        // ... (Keep existing implementation or deprecate)
+        // We keeping it for now in case we fallback to "Internal"
         const agentPda = this.getAgentPda(agentOwner);
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("config")],
+            this.program.programId
+        );
+        const [treasuryPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("treasury")],
+            this.program.programId
+        );
+        const vaultPda = this.getVaultPda(agentPda);
+
         return await this.program.methods
             .accrueYield()
             .accounts({
-                agent: agentPda
+                agent: agentPda,
+                config: configPda,
+                treasury: treasuryPda,
+                vault: vaultPda,
             })
             .rpc();
     }

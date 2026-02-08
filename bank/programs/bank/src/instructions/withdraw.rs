@@ -1,20 +1,21 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{transfer, Transfer};
-use crate::state::{Agent, BankConfig};
+use crate::state::{Agent, BankConfig, Delegate};
 use crate::constants::{AGENT_SEED, VAULT_SEED, CONFIG_SEED, TREASURY_SEED};
 use crate::error::BankError;
+use crate::instructions::delegate::DELEGATE_SEED;
+use crate::events::*;
 use crate::instructions::emergency_pause::require_not_paused;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
     #[account(mut)]
-    pub owner: Signer<'info>,
+    pub authority: Signer<'info>, // Can be Owner OR Delegate
 
     #[account(
         mut,
-        seeds = [AGENT_SEED.as_bytes(), owner.key().as_ref()],
+        seeds = [AGENT_SEED.as_bytes(), agent.owner.as_ref()],
         bump,
-        has_one = owner @ BankError::InvalidAuthority,
     )]
     pub agent: Account<'info, Agent>,
 
@@ -45,16 +46,51 @@ pub struct Withdraw<'info> {
     )]
     pub treasury: SystemAccount<'info>,
 
+    /// Optional Delegate Record
+    /// Must be provided if authority != agent.owner
+    #[account(
+        seeds = [
+            DELEGATE_SEED.as_bytes(), 
+            agent.key().as_ref(), 
+            authority.key().as_ref()
+        ],
+        bump,
+        constraint = delegate_record.agent == agent.key() @ BankError::InvalidAuthority,
+        constraint = delegate_record.delegate_key == authority.key() @ BankError::InvalidAuthority,
+    )]
+    pub delegate_record: Option<Account<'info, Delegate>>,
+
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+pub fn withdraw_handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     // Emergency pause check
     require_not_paused(&ctx.accounts.config)?;
     
     let agent = &mut ctx.accounts.agent;
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp;
+
+    // ============ AUTHORITY CHECK (Owner vs Delegate) ============
+    if ctx.accounts.authority.key() != agent.owner {
+        // Not the owner, must be a valid delegate
+        match &ctx.accounts.delegate_record {
+            Some(delegate) => {
+                // Check permissions
+                require!(delegate.can_spend, BankError::UnauthorizedDelegate);
+                
+                // Check expiry
+                if delegate.valid_until > 0 {
+                    require!(current_time < delegate.valid_until, BankError::DelegateExpired);
+                }
+                
+                msg!("DELEGATED_WITHDRAWAL: delegate={}", ctx.accounts.authority.key());
+            },
+            None => return err!(BankError::InvalidAuthority), // No delegate record found
+        }
+    } else {
+        msg!("OWNER_WITHDRAWAL: owner={}", ctx.accounts.authority.key());
+    }
 
     // ============ SECURITY LAYER: NeoShield Validation ============
     // Validate destination address before processing withdrawal
@@ -159,6 +195,15 @@ pub fn handler(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     transfer(cpi_ctx, net_amount)?;
 
     msg!("Withdrew {} lamports (Fee: {}). Period spend: {}/{}", amount, fee, agent.current_period_spend, agent.spending_limit);
+
+    emit!(Withdrawal {
+        agent: agent.key(),
+        authority: ctx.accounts.authority.key(),
+        destination: ctx.accounts.destination.key(),
+        amount,
+        fee,
+        period_spend: agent.current_period_spend,
+    });
 
     Ok(())
 }

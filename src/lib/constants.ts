@@ -6,7 +6,7 @@
 
 // ============ PROGRAM ============
 
-export const PROGRAM_ID = "FiarvoTx8WkneMjqX4T7KEpzX2Ya1FeBL991qGi49kFd";
+export const PROGRAM_ID = "BGTbi1d1n6BzZdyCvr4gEAY3DbC5sDGA4N5EnTRwcrh";
 export const NEO_BANK_PROGRAM_ID = PROGRAM_ID; // Alias for backward compat
 
 // ============ NETWORK ============

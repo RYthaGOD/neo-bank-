@@ -28,7 +28,7 @@ pub struct RegisterAgent<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(
+pub fn register_agent_handler(
     ctx: Context<RegisterAgent>,
     name: String,
     spending_limit: u64,
@@ -42,6 +42,7 @@ pub fn handler(
     agent.current_period_start = Clock::get()?.unix_timestamp;
     agent.current_period_spend = 0;
     agent.name = name;
+    agent.last_yield_timestamp = Clock::get()?.unix_timestamp; // Fix: Initialize to prevent retroactive yield
 
     msg!("Agent registered: {}", agent.name);
     msg!("Vault address: {}", ctx.accounts.vault.key());

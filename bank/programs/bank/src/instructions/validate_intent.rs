@@ -50,7 +50,7 @@ pub struct IntentValidation {
     pub reason: Option<String>,
 }
 
-pub fn handler(ctx: Context<ValidateIntent>, intent: TransactionIntent) -> Result<()> {
+pub fn validate_intent_handler(ctx: Context<ValidateIntent>, intent: TransactionIntent) -> Result<()> {
     let agent = &ctx.accounts.agent;
     let vault_balance = ctx.accounts.vault.lamports();
     let clock = Clock::get()?;
